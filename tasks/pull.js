@@ -7,7 +7,7 @@ module.exports = function (grunt) {
         grunt.log.writeln("Pulled", arg1, arg2);
         var done = this.async();
         require_config().then(function (config) {
-            grunt.log.writeln("Config file loaded", arg1,arg2);
+            grunt.log.writeln("Config file loaded");
             done();
         })
     });
