@@ -1,4 +1,6 @@
 # ServiceNow Grunt Tasks
+Grunt task used to work with servicenow instance 
+
 ### Installation
 
 You need Grunt CLI installed globally:
