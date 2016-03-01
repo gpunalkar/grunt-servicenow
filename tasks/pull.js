@@ -6,12 +6,12 @@ var fs = require('fs');
 var path = require('path');
 
 module.exports = function (grunt) {
-	grunt.registerTask('pullSN', 'Pull command.', function (folderName) {
+	grunt.registerTask('pull', 'Pull command.', function (folderName) {
        
 		var done = this.async();
         require_config().then(function (config) {
 
-			
+			console.log(grunt.config("test"));
 			var destination = path.join(process.cwd(), "dist");
 			
 			var snHelper = new ServiceNow(config);
