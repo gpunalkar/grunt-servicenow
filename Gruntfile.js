@@ -1,25 +1,27 @@
 module.exports = function (grunt) {
     var snConfig = grunt.file.readJSON('.sn-config.json');
+    var watchObj = {};
 
-    grunt.config(['pull', 'filechanged'], "");
+    for (key in snConfig.folders) {
+        watchObj[key] = {
+            files:['dist/'+key+'/*'],
+            tasks: ['push:'+key+':<%= filechanged %>']
+        };
+    }
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'),
         pull: snConfig.folders,
-        watch: {
-            ui_scripts: {
-                files: ['dist/ui_scripts/*'],
-                tasks: ['pull:ui_script:<%= pull.filechanged %>']
-            }
-        }
-    });
-    grunt.event.on('watch', function (action, filepath) {
-        grunt.config(['pull', 'filechanged'], filepath);
-        //grunt.log.writeln("Watch called");
+        push: snConfig.folders,
+        watchAndPush: watchObj
     });
 
+    grunt.event.on('watch', function (action, filepath) {
+        grunt.config(['filechanged'], filepath);
+    });
 
     grunt.loadNpmTasks('grunt-servicenow');
     grunt.loadNpmTasks('grunt-contrib-watch');
+    grunt.task.renameTask("watch", "watchAndPush");
 
 };
