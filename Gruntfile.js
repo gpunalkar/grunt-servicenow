@@ -2,7 +2,6 @@ var require_config = require("./helper/config_validator");
 
 var fs = require('fs');
 var path = require('path');
-
 module.exports = function (grunt) {
 	require('load-grunt-tasks')(grunt);
 
@@ -24,9 +23,7 @@ module.exports = function (grunt) {
 //        pull: snConfig.folders,
 //        push: snConfig.folders,
 //        watchAndPush: watchObj,
-			pullSN :{
-				foo : [1,2,3]
-			}
+			
 	
     });
 
