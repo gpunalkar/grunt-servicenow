@@ -10,5 +10,8 @@
   "license": "ISC",
   "files": [
     "tasks"
-  ]
+  ],
+  "dependencies": {
+    "express": "^4.13.4"
+  }
 }
