@@ -1,6 +1,6 @@
 {
   "name": "grunt-servicenow",
-  "version": "0.0.1",
+  "version": "0.0.21",
   "description": "",
   "main": "tasks/index.js",
   "scripts": {

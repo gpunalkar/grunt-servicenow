@@ -12,13 +12,13 @@ $ grunt watch:FolderName
 ```
 ## pull
 ```sh
-$ grunt pull (for security reason we might disble this)
+$ grunt pull #(for security reason we might disble this)
 $ grunt pull:FolderName
 $ grunt pull:FolderName:FilePath
 ```
 ## push
 ```sh
-$ grunt push (for security reason we might disble this)
+$ grunt push #(for security reason we might disble this)
 $ grunt push:FolderName
 $ grunt push:FolderName:FilePath
 ```
