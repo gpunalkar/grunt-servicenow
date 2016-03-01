@@ -5,6 +5,8 @@ var path = require('path');
 var inquirer = require('inquirer');
 
 module.exports = function (grunt) {
+    // ?
+    // Is this for testing purpose? I believe we can get away from it by npm link and npm link grunt-servicenow
     require('load-grunt-tasks')(grunt);
 
     var snConfig = grunt.file.readJSON('.sn-config.json');
