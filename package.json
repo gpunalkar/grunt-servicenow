@@ -11,5 +11,8 @@
   "dependencies": {
     "express": "^4.13.4",
     "restify": "^4.0.4"
+  },
+  "devDependencies": {
+    "grunt-contrib-watch": "^0.6.1"
   }
 }
