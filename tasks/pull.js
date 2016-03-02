@@ -46,27 +46,24 @@ module.exports = function (grunt) {
 							// instantiate file_record and create hash
 							var fileRecord = new FileRecord(config, file_path);
 							
-							var record = {
+							fileRecord.updateMeta({
 								sys_id : result.sys_id,
 								sys_updated_on : result.sys_updated_on,
 								sys_updated_by : result.sys_updated_by
-							};
-							
-							fileRecord.updateMeta(record);
+							});
 							
 							fileRecord.saveHash(content, function(saved){
-								console.log("saved");
-								done();
-							})
-							fs.writeFile(file_path, content, function (err) {
-								if (err){
-									console.error("Error writing new file", err)
-								}
-								else{
-									console.log("Creating file " + file_path);
-								}
 								
-								done();
+								fs.writeFile(file_path, content, function (err) {
+									if (err){
+										console.error("Error writing new file", err)
+									}
+									else{
+										console.log("Creating file " + file_path);
+									}
+
+									done();
+								});
 							});
 						}
 						else{
