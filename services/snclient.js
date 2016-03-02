@@ -33,10 +33,6 @@ module.exports = restler.service(
 		
 	},
 	{
-//		getRecords : function(table,query){
-////			console.log(this.baseURL + "/api/now/table/" + table + "?sysparm_query=" + query);
-//			return this.get(this.baseURL + "/api/now/table/" + table + "?sysparm_query=" + query);
-//		}
 		table : function table(tableName) {
 			var client = this;
 			
@@ -89,7 +85,8 @@ module.exports = restler.service(
 					// this is actually not an error! It's just that the server didn't return anything to us
 					//return null;
 				}
-				if (!result.records && res.statusCode !== 201) {
+				
+				if (!result.result) {
 					return new Error(util.format('Response missing "records" key: %j\nCheck server logs.', result));
 				}
 				return null;
@@ -105,7 +102,7 @@ module.exports = restler.service(
 			function send(request){
 				var maxRecords = request.rows || 1;
 				var urlObj = {
-					pathname: '/api/now/table/' + request.table
+					pathname: '/api/now/table/' + request.table + "/" + request.sys_id
 					
 				};
 				if(request.parmName){
@@ -113,7 +110,7 @@ module.exports = restler.service(
 				}
 				
 				var path = url.format(urlObj);
-				
+				console.log(path);
 //				console.debug('snc-client send() path: ' + path);
 				
 				function handleResponse(result, res){
@@ -156,9 +153,8 @@ module.exports = restler.service(
 			function updateRecord(query, callback) {
 				var parms = {
 					table: tableName,
+					sys_id : "2bb9ddab13315200ca3db1676144b0e5",
 					action : 'update',
-					parmName : 'query',
-					parmValue : query.query,
 					postObj : query.payload,
 					callback : callback
 				};
