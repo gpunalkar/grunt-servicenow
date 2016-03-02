@@ -62,14 +62,13 @@ module.exports = restler.service(
 					return new Error(help);
 				}
 				
-				if (res.statusCode !== 200) {
+				if (res.statusCode !== 200 && res.statusCode !== 201) {
 
 					if (res.statusCode === 401) {
 					  help = 'Check credentials.';
 					} else if (res.statusCode === 302) {
 					  help = 'Verify JSON Web Service plugin is activated.';
 					}
-
 					var message = util.format('%s - %s', res.statusCode, http.STATUS_CODES[res.statusCode]);
 					if (help) {
 					  message += ' - ' + help;
@@ -90,7 +89,7 @@ module.exports = restler.service(
 					// this is actually not an error! It's just that the server didn't return anything to us
 					//return null;
 				}
-				if (!result.records) {
+				if (!result.records && res.statusCode !== 201) {
 					return new Error(util.format('Response missing "records" key: %j\nCheck server logs.', result));
 				}
 				return null;
@@ -106,17 +105,15 @@ module.exports = restler.service(
 			function send(request){
 				var maxRecords = request.rows || 1;
 				var urlObj = {
-					pathname: '/api/now/table/' + request.table,
-					query : {
-						sysparm_record_count : maxRecords,
-					}
+					pathname: '/api/now/table/' + request.table
+					
 				};
 				if(request.parmName){
 					urlObj.query['sysparm_' + request.parmName] = request.parmValue;
 				}
 				
 				var path = url.format(urlObj);
-				console.log(client.baseURL + path);
+				
 //				console.debug('snc-client send() path: ' + path);
 				
 				function handleResponse(result, res){
@@ -125,10 +122,16 @@ module.exports = restler.service(
 				}
 				try {
 					if (request.postObj){
-						client.post(path, {data: JSON.stringify(request.postObj)}).on("complete",handleResponse);
+						if(request.action === "create")	{
+							client.post(path, {data: JSON.stringify(request.postObj)}).on("complete",handleResponse);		
+						}
+						else if(request.action === "update"){
+							client.put(path, {data : JSON.stringify(request.postObj)}).on("complete",handleResponse);
+						}
+						
 					}
 					else{
-	client.get(path).on("complete",handleResponse);
+						client.get(path).on("complete",handleResponse);
 						
 					}
 				} catch(err){
@@ -150,8 +153,34 @@ module.exports = restler.service(
 				send(parms);
 			}
 			
+			function updateRecord(query, callback) {
+				var parms = {
+					table: tableName,
+					action : 'update',
+					parmName : 'query',
+					parmValue : query.query,
+					postObj : query.payload,
+					callback : callback
+				};
+				
+				send(parms);
+			}
+			
+			function createRecord(query, callback) {
+				var parms = {
+					table: tableName,
+					action : 'create',
+					postObj : query.payload,
+					callback : callback
+				};
+				
+				send(parms);
+			}
+			
 			return {
-				getRecords : getRecords
+				getRecords : getRecords,
+				updateRecord : updateRecord,
+				createRecord : createRecord
 			};
 			
 		}
