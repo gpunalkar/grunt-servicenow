@@ -4,7 +4,8 @@
 
 var fs = require('fs'),
 	path = require('path'),
-	crypto = require('crypto');
+	crypto = require('crypto'),
+	require_folder = require("../helper/folder_validator");
 
 var method = FileRecord.prototype,
 	syncDir = '.sync_data';
@@ -177,15 +178,21 @@ method._saveMeta = function(callback) {
 		outputString = JSON.stringify(this.meta),
 		_this = this;
 	
-	fs.writeFile(dataFile, outputString, function(err){
-		if (err){
-			console.error("Could not write out meta file", dataFile);
-			callback(false);
-		}
-		else{
-			callback(true);
-		}
+	require_folder(path.join(path.dirname(dataFile),"/..")).then(function(){
+		
+		require_folder(path.dirname(dataFile)).then(function(){
+			fs.writeFile(dataFile, outputString, function(err){
+				if (err){
+					console.error("Could not write out meta file", err);
+					callback(false);
+				}
+				else{
+					callback(true);
+				}
+			});
+		});
 	});
+	
 };
 
 // ------------------------------

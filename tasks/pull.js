@@ -3,7 +3,7 @@ var ServiceNow = require('../services/snclient'),
 	require_config = require("../helper/config_validator"),
 	require_folder = require("../helper/folder_validator"),
 	FileRecordUtil = require("../helper/file_record"),
-	FileRecord = FileRecordUtil.FileRecord,
+	FileRecord = FileRecordUtil.fileRecord,
 	makeHash = FileRecordUtil.makeHash;
 
 var fs = require('fs'),
@@ -32,9 +32,10 @@ module.exports = function (grunt) {
 					
 					require_folder(folder_path).then(function (){
 						if(obj.result.length === 1){
-							var content = obj.result[0][config.folders[folderName].field];
+							var result = obj.result[0];
+							var content = result[config.folders[folderName].field];
 							
-							var filename = obj.result[0][config.folders[folderName].key];
+							var filename = result[config.folders[folderName].key];
 							
 							if ('extension' in config.folders[folderName]) {
 								filename = filename + "." + config.folders[folderName].extension;
@@ -43,7 +44,20 @@ module.exports = function (grunt) {
 							var file_path = path.join(folder_path, filename);
 							
 							// instantiate file_record and create hash
-								
+							var fileRecord = new FileRecord(config, file_path);
+							
+							var record = {
+								sys_id : result.sys_id,
+								sys_updated_on : result.sys_updated_on,
+								sys_updated_by : result.sys_updated_by
+							};
+							
+							fileRecord.updateMeta(record);
+							
+							fileRecord.saveHash(content, function(saved){
+								console.log("saved");
+								done();
+							})
 							fs.writeFile(file_path, content, function (err) {
 								if (err){
 									console.error("Error writing new file", err)
