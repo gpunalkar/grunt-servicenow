@@ -1,10 +1,14 @@
 'use strict';
-var ServiceNow = require('../services/snclient.js');
-var require_config = require("../helper/config_validator");
-var require_folder = require("../helper/folder_validator");
+var ServiceNow = require('../services/snclient'),
+	require_config = require("../helper/config_validator"),
+	require_folder = require("../helper/folder_validator"),
+	FileRecordUtil = require("../helper/file_record"),
+	FileRecord = FileRecordUtil.FileRecord,
+	makeHash = FileRecordUtil.makeHash;
 
-var fs = require('fs');
-var path = require('path');
+var fs = require('fs'),
+	path = require('path');
+
 
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folderName,file_name) {
@@ -38,6 +42,8 @@ module.exports = function (grunt) {
 							
 							var file_path = path.join(folder_path, filename);
 							
+							// instantiate file_record and create hash
+								
 							fs.writeFile(file_path, content, function (err) {
 								if (err){
 									console.error("Error writing new file", err)
@@ -61,7 +67,8 @@ module.exports = function (grunt) {
 									}
 
 									var file_path = path.join(folder_path, filename);
-
+									
+									// instantiate file_record and create hash
 									fs.writeFile(file_path, content, function (err) {
 										if (err){
 											console.error("Error writing new file", err)
