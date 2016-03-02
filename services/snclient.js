@@ -101,20 +101,35 @@ module.exports = restler.service(
 			
 			function send(request){
 				var maxRecords = request.rows || 1;
-				var urlObj = {
-					pathname: '/api/now/table/' + request.table + "/" + request.sys_id
-					
-				};
-				if(request.parmName){
-					urlObj.query['sysparm_' + request.parmName] = request.parmValue;
-				}
+				var urlObj;
 				
+				if(request.sys_id)		{
+					urlObj = {
+						pathname: '/api/now/table/' + request.table + "/" + request.sys_id
+
+					};	
+				}
+				else{
+					
+					urlObj = {
+						pathname: '/api/now/table/' + request.table,
+						query : {
+							'sysparm_query'  : request.parmValue
+						}
+					};
+					
+				}
+//				if(request.parmName){
+//					urlObj.query['sysparm_' + request.parmName] = request.parmValue;
+//				}
+			
 				var path = url.format(urlObj);
-				console.log(path);
+				
 //				console.debug('snc-client send() path: ' + path);
 				
 				function handleResponse(result, res){
 					var err = validateResponse(result, res, request);
+					console.log("handled");
 					request.callback(err, result);
 				}
 				try {
@@ -129,7 +144,6 @@ module.exports = restler.service(
 					}
 					else{
 						client.get(path).on("complete",handleResponse);
-						
 					}
 				} catch(err){
 					console.error("Some connection error happened...",err);
