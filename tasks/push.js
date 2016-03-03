@@ -1,54 +1,44 @@
 'use strict';
-var ServiceNow = require('../services/snclient.js');
-var require_config = require("../helper/config_validator");
-var require_folder = require("../helper/folder_validator");
+var ServiceNow = require('../services/snclient'),
+	require_config = require("../helper/config_validator"),
+	FileHelper = require("../helper/file_helper");
 
 var fs = require('fs');
 var path = require('path');
 
 module.exports = function (grunt) {
-    grunt.registerTask('push', 'Push command.', function (folderName, fileName) {
+    grunt.registerTask('push', 'Push command.', function (folder_name, file_name) {
      
 		
 		var done = this.async();
         require_config().then(function (config) {
-            var destination = path.join(process.cwd(), "dist");
+            var fileHelper = new FileHelper(config);
+            fileHelper.setFolderName(folder_name);
+			fileHelper.setDestination("dist");
 			
-            require_folder(destination).then(function () {
-				
-				// setup SN client
-				var snHelper = new ServiceNow(config),
-				
-					folder_path = path.join(destination, folderName),
-					file_path = path.join(folder_path, fileName);
-				console.log(file_path);
-				fs.readFile(file_path,'utf-8',function(err, data){
-					if(err){
-//						console.log(err);
-					}
+			var files = fileHelper.readFiles(file_name);
+
+			var snHelper = new ServiceNow(config);
+
+			files.then(function(all_files){
+				for(var i = 0; i <all_files.length; i++){
+					var record_name = path.basename(all_files[i].name);
 					
+					// I need to get the sys_id here
 					var parms = {
-						table : config.folders[folderName].table,
+						table : config.folders[folder_name].table,
 						sys_id : "4e1a9d2f137d16002ea1b2566144b00a",
 						payload : {
-								"html" : data,
-								"name" : "steve"
+								"html" : all_files[i].content,
+								"name" : record_name
 							
 						}
 					};
-					snHelper.table(config.folders[folderName].table).updateRecord(parms,function(err,obj){
-						if(err){
-							console.error("Error: ",err);
-							done();
-						}
-						
-						else{
-							console.log("Changes to  " + file_path + " successfully update on instance.");	
-							done();
-						}
+					snHelper.table(parms.table).updateRecord(parms,function(err,obj){
+						console.log(obj);
 					});
 					
-				});
+				}
 				
 			});
 		});

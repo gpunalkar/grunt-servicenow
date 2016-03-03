@@ -1,11 +1,10 @@
 'use strict';
 var ServiceNow = require('../services/snclient'),
 	require_config = require("../helper/config_validator"),
-	require_folder = require("../helper/folder_validator"),
-	FileHelper = require("../helper/file_helper"),
-	FileRecordUtil = require("../helper/file_record"),
-	FileRecord = FileRecordUtil.fileRecord,
-	makeHash = FileRecordUtil.makeHash;
+	FileHelper = require("../helper/file_helper");
+//	FileRecordUtil = require("../helper/file_record"),
+//	FileRecord = FileRecordUtil.fileRecord,
+//	makeHash = FileRecordUtil.makeHash;
 
 var fs = require('fs'),
 	path = require('path');
