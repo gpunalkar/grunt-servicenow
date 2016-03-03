@@ -1,5 +1,7 @@
 var syncDataHelper = require('../helper/sync_data_validator');
 
+var crypto = require('crypto');
+
 module.exports = function (sync_data) {
 
     var saveHash = function (file_path, hash) {
