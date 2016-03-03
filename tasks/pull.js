@@ -1,21 +1,20 @@
 'use strict';
-var ServiceNow = require('../services/snclient'),
+var fs = require('fs'),
+    path = require('path'),
+    ServiceNow = require('../services/snclient'),
     require_config = require("../helper/config_validator"),
     require_folder = require("../helper/folder_validator"),
     HashHelper = require('../helper/hash'),
     syncDataHelper = require('../helper/sync_data_validator'),
-    fs = require('fs'),
-    path = require('path');
+    destination = path.join(process.cwd(), "dist");
 
 
 module.exports = function (grunt) {
-
     grunt.registerTask('pull', 'Pull command.', function (folderName, file_name) {
         var done = this.async();
         syncDataHelper.loadData().then(function (sync_data) {
             var hash = HashHelper(sync_data);
             require_config().then(function (config) {
-                var destination = path.join(process.cwd(), "dist");
                 require_folder(destination).then(function () {
 
                     var snHelper = new ServiceNow(config);
