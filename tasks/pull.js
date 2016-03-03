@@ -1,17 +1,17 @@
 'use strict';
 var ServiceNow = require('../services/snclient'),
-	require_config = require("../helper/config_validator"),
-	require_folder = require("../helper/folder_validator"),
-	FileRecordUtil = require("../helper/file_record"),
-	FileRecord = FileRecordUtil.fileRecord,
-	makeHash = FileRecordUtil.makeHash;
-
-var fs = require('fs'),
-	path = require('path');
+    require_config = require("../helper/config_validator"),
+    require_folder = require("../helper/folder_validator"),
+    FileRecordUtil = require("../helper/file_record"),
+    FileRecord = FileRecordUtil.fileRecord,
+    makeHash = FileRecordUtil.makeHash,
+    hashHelper = require('../helper/hash_helper')({}),
+    fs = require('fs'),
+    path = require('path');
 
 
 module.exports = function (grunt) {
-    grunt.registerTask('pull', 'Pull command.', function (folderName,file_name) {
+    grunt.registerTask('pull', 'Pull command.', function (folderName, file_name) {
 
         var done = this.async();
         require_config().then(function (config) {
@@ -19,94 +19,108 @@ module.exports = function (grunt) {
             require_folder(destination).then(function () {
 
                 var snHelper = new ServiceNow(config);
-				var query ="";
-				
-				if(file_name){
-					query = config.folders[folderName].key + "=" + file_name;	
-				}
-				else{
-					query = config.folders[folderName].key + "STARTSWITHsolution";
-				}
-				snHelper.table(config.folders[folderName].table).getRecords(query,function(err,obj){
-					var folder_path = path.join(destination, folderName);
-					
-					require_folder(folder_path).then(function (){
-						if(obj.result.length === 1){
-							var result = obj.result[0];
-							var content = result[config.folders[folderName].field];
-							
-							var filename = result[config.folders[folderName].key];
-							
-							if ('extension' in config.folders[folderName]) {
-								filename = filename + "." + config.folders[folderName].extension;
-							}
-							
-							var file_path = path.join(folder_path, filename);
-							
-							// instantiate file_record and create hash
-							var fileRecord = new FileRecord(config, file_path);
-							
-							fileRecord.updateMeta({
-								sys_id : result.sys_id,
-								sys_updated_on : result.sys_updated_on,
-								sys_updated_by : result.sys_updated_by
-							});
-							
-							fileRecord.saveHash(content, function(saved){
-								
-								fs.writeFile(file_path, content, function (err) {
-									if (err){
-										console.error("Error writing new file", err)
-									}
-									else{
-										console.log("Creating file " + file_path);
-									}
+                var query = "";
 
-									done();
-								});
-							});
-						}
-						else{
-							for(var i = 0; i < obj.result.length; i++){
-								(function(){
-									result = obj.result[i];
-									
-									var content = result[config.folders[folderName].field];
-							
-									var filename = result[config.folders[folderName].key];
+                // TODO STARTSWITH is part of servicenow api and should happen on snclient
+                if (file_name) {
+                    query = config.folders[folderName].key + "=" + file_name;
+                }
+                else {
+                    query = config.folders[folderName].key + "STARTSWITHsolution";
+                }
+                snHelper.table(config.folders[folderName].table).getRecords(query, function (err, obj) {
+                    var folder_path = path.join(destination, folderName);
 
-									if ('extension' in config.folders[folderName]) {
-										filename = filename + "." + config.folders[folderName].extension;
-									}
+                    require_folder(folder_path).then(function () {
+                        if (obj.result.length === 1) {
+                            var result = obj.result[0];
+                            var content = result[config.folders[folderName].field];
 
-									var file_path = path.join(folder_path, filename);
-									
-									// instantiate file_record and create hash
-									var fileRecord = new FileRecord(config, file_path);
+                            var filename = result[config.folders[folderName].key];
 
-									fileRecord.updateMeta({
-										sys_id : result.sys_id,
-										sys_updated_on : result.sys_updated_on,
-										sys_updated_by : result.sys_updated_by
-									});
+                            if ('extension' in config.folders[folderName]) {
+                                filename = filename + "." + config.folders[folderName].extension;
+                            }
 
-									fileRecord.saveHash(content, function(saved){
-										fs.writeFile(file_path, content, function (err) {
-											if (err){
-												console.error("Error writing new file", err)
-											}
-											else{
-												console.log("Creating file " + file_path);
-											}
+                            var file_path = path.join(folder_path, filename);
 
-										});
-									});
-								})();
-							}
-						}
-					});
-				});
-				
+                            // instantiate file_record and create hash
+                            var fileRecord = new FileRecord(config, file_path);
+
+                            fileRecord.updateMeta({
+                                sys_id: result.sys_id,
+                                sys_updated_on: result.sys_updated_on,
+                                sys_updated_by: result.sys_updated_by
+                            });
+
+                            //
+                            hashHelper.compareHash(file_path).then(function () {
+                                fs.writeFile(file_path, content, function (err) {
+                                    if (err) {
+                                        console.error("Error writing new file", err)
+                                    } else {
+                                        console.log("Creating file " + file_path);
+                                    }
+                                    done()
+                                });
+                            }, function () {
+                                console.log('You have modified your file,  if you want to pull the new content please use force = true');
+                            });
+
+                            //fileRecord.saveHash(content, function(saved){
+                            //fs.writeFile(file_path, content, function (err) {
+                            //	if (err){
+                            //		console.error("Error writing new file", err)
+                            //	}
+                            //	else{
+                            //		console.log("Creating file " + file_path);
+                            //	}
+                            //
+                            //
+                            //});
+                            //});
+                        }
+                        else {
+                            for (var i = 0; i < obj.result.length; i++) {
+                                (function () {
+                                    result = obj.result[i];
+
+                                    var content = result[config.folders[folderName].field];
+
+                                    var filename = result[config.folders[folderName].key];
+
+                                    if ('extension' in config.folders[folderName]) {
+                                        filename = filename + "." + config.folders[folderName].extension;
+                                    }
+
+                                    var file_path = path.join(folder_path, filename);
+
+                                    // instantiate file_record and create hash
+                                    var fileRecord = new FileRecord(config, file_path);
+
+                                    fileRecord.updateMeta({
+                                        sys_id: result.sys_id,
+                                        sys_updated_on: result.sys_updated_on,
+                                        sys_updated_by: result.sys_updated_by
+                                    });
+
+                                    fileRecord.saveHash(content, function (saved) {
+                                        fs.writeFile(file_path, content, function (err) {
+                                            if (err) {
+                                                console.error("Error writing new file", err)
+                                            }
+                                            else {
+                                                console.log("Creating file " + file_path);
+                                            }
+
+                                        });
+                                    });
+                                })();
+                            }
+                        }
+                    });
+                });
+
 
             });
         });
