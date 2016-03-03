@@ -129,7 +129,7 @@ module.exports = restler.service(
 				
 				function handleResponse(result, res){
 					var err = validateResponse(result, res, request);
-					console.log("handled");
+
 					request.callback(err, result);
 				}
 				try {
