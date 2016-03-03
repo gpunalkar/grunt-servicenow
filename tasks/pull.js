@@ -33,10 +33,7 @@ module.exports = function (grunt) {
 
 					query = config.folders[folder_name].key + "STARTSWITH" + prefix;
 				}
-				else{
-					query = config.folders[folder_name].key + "STARTSWITHsolution";
-				}
-				console.log(query);
+
 				snHelper.table(config.folders[folder_name].table).getRecords(query,function(err,obj){
 					var config_object = config.folders[folder_name];
 					var savePromise = new Promise(function(resolve,reject){
