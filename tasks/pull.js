@@ -11,6 +11,7 @@ var fs = require('fs'),
 
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folderName, file_name) {
+
         var done = this.async();
         syncDataHelper.loadData().then(function (sync_data) {
             var hash = HashHelper(sync_data);
@@ -25,7 +26,7 @@ module.exports = function (grunt) {
                         query = config.folders[folderName].key + "=" + file_name;
                     }
                     else {
-                        query = config.folders[folderName].key + "STARTSWITHsolution";
+                        query = config.folders[folderName].key + "STARTSWITH" + config.project_prefix;
                     }
                     snHelper.table(config.folders[folderName].table).getRecords(query, function (err, obj) {
                         var folder_path = path.join(destination, folderName);

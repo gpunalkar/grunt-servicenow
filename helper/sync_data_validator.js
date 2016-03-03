@@ -10,9 +10,14 @@ module.exports = function () {
 
     this.loadData = function () {
         return new Promise(function (fulfill, reject) {
+
             fs.lstat(sync_data_path, function (err, stats) {
                 if (err) {
-                    fulfill(JSON.parse({}));
+                    if (err.code == 'ENOENT') {
+                        fs.writeFile(sync_data_path, JSON.stringify({}), function (err) {
+                            fulfill(JSON.parse({}));
+                        });
+                    }
                 } else {
                     fs.readFile(sync_data_path, 'utf8', function (err, data) {
                         if (err) {
