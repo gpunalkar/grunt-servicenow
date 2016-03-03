@@ -1,8 +1,8 @@
 var require_folder = require("../helper/folder_validator");
 
 var path = require('path'),
-	fs = require('fs-extra'),
-	Promise = require('promise');
+	fs = require('fs-extra');
+
 module.exports = function(config,callback){
 	this.config = config;
 	this.folder_name = "";
@@ -31,8 +31,19 @@ module.exports = function(config,callback){
 		readFiles : function(file_name){
 			var _this = this;
 			var all_files = [];
+
 			if(file_name){
-				all_files.push(file_name);
+				return new Promise(function(resolve, reject){
+					fs.readFile(file_name,"utf-8",function(err, data){
+						all_files.push({
+							name : file_name,
+							content : data
+						});
+
+						resolve(all_files);
+					});
+				});
+
 			}
 			else{
 

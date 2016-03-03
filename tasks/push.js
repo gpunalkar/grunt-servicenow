@@ -1,45 +1,67 @@
 'use strict';
+var fs = require('fs'),
+	path = require('path');
+
 var ServiceNow = require('../services/snclient'),
 	require_config = require("../helper/config_validator"),
-	FileHelper = require("../helper/file_helper");
+	FileHelper = require("../helper/file_helper"),
+	HashHelper = require('../helper/hash'),
+    syncDataHelper = require('../helper/sync_data_validator'),
+    destination = path.join(process.cwd(), "dist");
 
-var fs = require('fs');
-var path = require('path');
+
+
 
 module.exports = function (grunt) {
     grunt.registerTask('push', 'Push command.', function (folder_name, file_name) {
-     
-		
+
 		var done = this.async();
-        require_config().then(function (config) {
-            var fileHelper = new FileHelper(config);
-            fileHelper.setFolderName(folder_name);
-			fileHelper.setDestination("dist");
-			
-			var files = fileHelper.readFiles(file_name);
+		syncDataHelper.loadData().then(function (sync_data) {
+			require_config().then(function (config) {
 
-			var snHelper = new ServiceNow(config);
+				var fileHelper = new FileHelper(config);
+				fileHelper.setFolderName(folder_name);
+				fileHelper.setDestination("dist");
 
-			files.then(function(all_files){
-				for(var i = 0; i <all_files.length; i++){
-					var record_name = path.basename(all_files[i].name);
-					
-					// I need to get the sys_id here
-					var parms = {
-						table : config.folders[folder_name].table,
-						sys_id : "4e1a9d2f137d16002ea1b2566144b00a",
-						payload : {
-								"html" : all_files[i].content,
-								"name" : record_name
-							
-						}
-					};
-					snHelper.table(parms.table).updateRecord(parms,function(err,obj){
-						console.log(obj);
-					});
-					
+				var full_name;
+				if(file_name){
+					full_name = path.join(destination,folder_name,file_name);
+					console.log(full_name);
+					if(config.folders[folder_name].extension){
+
+						full_name = full_name + "." + config.folders[folder_name].extension;
+					}
 				}
-				
+
+				var files = fileHelper.readFiles(full_name);
+
+				var snHelper = new ServiceNow(config);
+
+				files.then(function(all_files){
+
+					for(var i = 0; i <all_files.length; i++){
+						var record_name = path.basename(all_files[i].name);
+
+
+						var record_path = path.join("dist",folder_name,record_name);
+			
+						// I need to get the sys_id here
+						var parms = {
+							table : config.folders[folder_name].table,
+							sys_id : sync_data[record_path].sys_id,
+							payload : {
+									"html" : all_files[i].content,
+									"name" : file_name
+
+							}
+						};
+						snHelper.table(parms.table).updateRecord(parms,function(err,obj){
+							console.log(obj);
+						});
+
+					}
+
+				});
 			});
 		});
     });
