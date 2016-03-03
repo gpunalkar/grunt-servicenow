@@ -5,7 +5,7 @@ var ServiceNow = require('../services/snclient'),
     FileRecordUtil = require("../helper/file_record"),
     FileRecord = FileRecordUtil.fileRecord,
     makeHash = FileRecordUtil.makeHash,
-    hashHelper = require('../helper/hash_helper')({}),
+    hashHelper = require('../helper/hash')({}),
     fs = require('fs'),
     path = require('path');
 
