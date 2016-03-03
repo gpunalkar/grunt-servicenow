@@ -26,10 +26,23 @@ module.exports = function (grunt) {
 				query = config.folders[folder_name].key + "STARTSWITHsolution";
 			}
 			snHelper.table(config.folders[folder_name].table).getRecords(query,function(err,obj){
-		
+				var config_object = config.folders[folder_name];
+
 				for(var i = 0; i < obj.result.length; i++){
+					var result = obj.result[i];
 					(function(){
-						fileHelper.saveFile(obj.result[i]).then(function(){
+						var file_name = result[config_object.key];
+
+						if(config_object.extension){
+							file_name = file_name + "." + config_object.extension;
+						}
+						fileHelper.saveFile(
+							{
+
+								dest : path.join("dist", folder_name,file_name),
+								content : result[config_object.field]
+							}
+						).then(function(){
 							done();
 						},function(err){
 							console.error("Save file failed", err);

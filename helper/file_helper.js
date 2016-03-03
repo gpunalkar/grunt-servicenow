@@ -14,22 +14,12 @@ module.exports = function(config,callback){
 			var _this = this;
 			var p = new Promise(
 				function(resolve, reject){
-					var config_object = config.folders[_this.folder_name],
-						content = result[config_object.field],
-						filename = result[config_object.key];
-
-					if ('extension' in config_object) {
-						filename = filename + "." + config_object.extension;
-					}
-
-					var file_path = path.join(_this.destination, _this.folder_name, filename);
-
-					fs.outputFile(file_path, content, function (err) {
+					fs.outputFile(result.dest, result.content, function (err) {
 						if (err){
 							reject(err);
 						}
 						else{
-							console.log("Creating file " + file_path);
+							console.log("Creating file " + result.dest);
 							resolve();
 						}
 					});			
