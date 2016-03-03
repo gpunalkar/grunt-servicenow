@@ -9,9 +9,9 @@ $ npm install grunt-servicenow --save-dev
 ```
 
 ### Tasks
-	[watchAndPush](#watchAndPush)
-	
-	[pull](#pull)
+- [watchAndPush](#watchAndPush) - Monitor all directories for changes and push to instance
+- [pull](#pull) - Grab changes to records from instance and bring down
+- [push](#push) - Grab local changes and push to instance
 	
 ## watchAndPush <a name="watchAndPush"></a>
 ```sh
