@@ -13,8 +13,6 @@ module.exports = function(config,callback){
 			var _this = this;
 			var p = new Promise(
 				function(resolve, reject){
-					console.log("saveFile to " + _this.destination + "/" + _this.folder_name);
-			
 					var config_object = config.folders[_this.folder_name],
 						content = result[config_object.field],
 						filename = result[config_object.key];

@@ -31,87 +31,18 @@ module.exports = function (grunt) {
 			}
 			snHelper.table(config.folders[folder_name].table).getRecords(query,function(err,obj){
 		
-				if(obj.result.length === 1){
+				for(var i = 0; i < obj.result.length; i++){
+					(function(){
+						fileHelper.saveFile(obj.result[i]).then(function(){
+							done();
+						},function(err){
+							console.error("Save file failed", err);
+							done();
+						});
+					})();
 					
-					fileHelper.saveFile(obj.result[0]).then(function(){
-						console.log("yay");
-						done();
-					},function(err){
-						console.error("Save file failed", err);
-						done();
-					});
-//					var result = obj.result[0];
-//					var content = result[config.folders[folder_name].field];
-//
-//					var filename = result[config.folders[folder_name].key];
-//
-//					if ('extension' in config.folders[folder_name]) {
-//						filename = filename + "." + config.folders[folder_name].extension;
-//					}
-//
-//					var file_path = path.join(folder_path, filename);
-//
-//					// instantiate file_record and create hash
-//					var fileRecord = new FileRecord(config, file_path);
-//
-//					fileRecord.updateMeta({
-//						sys_id : result.sys_id,
-//						sys_updated_on : result.sys_updated_on,
-//						sys_updated_by : result.sys_updated_by
-//					});
-//
-//					fileRecord.saveHash(content, function(saved){
-//
-//						fs.writeFile(file_path, content, function (err) {
-//							if (err){
-//								console.error("Error writing new file", err)
-//							}
-//							else{
-//								console.log("Creating file " + file_path);
-//							}
-//
-//							done();
-//						});
-//					});
 				}
-				else{
-					for(var i = 0; i < obj.result.length; i++){
-						(function(){
-							result = obj.result[i];
-
-							var content = result[config.folders[folder_name].field];
-
-							var filename = result[config.folders[folder_name].key];
-
-							if ('extension' in config.folders[folder_name]) {
-								filename = filename + "." + config.folders[folder_name].extension;
-							}
-
-							var file_path = path.join(folder_path, filename);
-
-							// instantiate file_record and create hash
-							var fileRecord = new FileRecord(config, file_path);
-
-							fileRecord.updateMeta({
-								sys_id : result.sys_id,
-								sys_updated_on : result.sys_updated_on,
-								sys_updated_by : result.sys_updated_by
-							});
-
-							fileRecord.saveHash(content, function(saved){
-								fs.writeFile(file_path, content, function (err) {
-									if (err){
-										console.error("Error writing new file", err)
-									}
-									else{
-										console.log("Creating file " + file_path);
-									}
-
-								});
-							});
-						})();
-					}
-				}
+				
             });
         });
     });
