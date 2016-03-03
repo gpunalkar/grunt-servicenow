@@ -4,7 +4,7 @@ var path = require('path'),
 module.exports = function () {
 
     var readDir = function (dir_path) {
-        var all_files = {};
+        var all_files = [];
         return new Promise(function (resolve, reject) {
             fs.readdir(dir_path, function (err, files) {
                 if (err) {
@@ -18,7 +18,10 @@ module.exports = function () {
                 files.forEach(function (file_name) {
                     fs.readFile(read_name, "utf-8", function (err, data) {
                         num_of_files_loaded++;
-                        all_files[file_name] = data;
+                        all_files.push({
+							name : path.basename(file_path),
+							content : data
+						});
 
                         if (num_of_files_loaded >= num_of_files) {
                             resolve(all_files);
@@ -31,17 +34,21 @@ module.exports = function () {
     };
 
     var readFile = function (file_path) {
+		var all_files = [];
         return new Promise(function (resolve, reject) {
-            fs.readFile(read_name, "utf-8", function (err, data) {
+			fs.readFile(file_path, "utf-8", function (err, data) {
                 if (err) {
                     return reject()
                 }
-                num_of_files_loaded++;
-                all_files[file_name] = data;
+//                num_of_files_loaded++;
+                all_files.push({
+					name : path.basename(file_path),
+					content : data
+				});
 
-                if (num_of_files_loaded >= num_of_files) {
-                    resolve(all_files);
-                }
+//                if (num_of_files_loaded >= num_of_files) {
+				resolve(all_files);
+//                }
             });
         });
 
@@ -64,6 +71,7 @@ module.exports = function () {
 
     };
     
+
     /**
      *
      * @param files_to_create
@@ -93,14 +101,17 @@ module.exports = function () {
      * @returns {*}
      */
     this.readFiles = function (files_path) {
-        return new Promise(function (resolve, reject) {
+		return new Promise(function (resolve, reject) {
             fs.lstat(files_path, function (err, stats) {
                 if (stats.isDirectory()) {
                     readDir(files_path).then(resolve,reject);
                 } else {
+
                     readFile(files_path).then(resolve,reject);
                 }
             })
         });
     };
+
+	return this;
 }();

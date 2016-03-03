@@ -4,7 +4,7 @@ var fs = require('fs'),
 
 var ServiceNow = require('../services/snclient'),
 	require_config = require("../helper/config_validator"),
-	FileHelper = require("../helper/file_helper"),
+	fileHelper = require("../helper/file_helper"),
 	HashHelper = require('../helper/hash'),
     syncDataHelper = require('../helper/sync_data_validator'),
     destination = path.join(process.cwd(), "dist");
@@ -19,30 +19,26 @@ module.exports = function (grunt) {
 		syncDataHelper.loadData().then(function (sync_data) {
 			require_config().then(function (config) {
 
-				var fileHelper = new FileHelper(config);
-				fileHelper.setFolderName(folder_name);
-				fileHelper.setDestination("dist");
+//				var fileHelper = new FileHelper();
 
 				var full_name;
 				if(file_name){
 					full_name = path.join(destination,folder_name,file_name);
-					console.log(full_name);
+
 					if(config.folders[folder_name].extension){
 
 						full_name = full_name + "." + config.folders[folder_name].extension;
 					}
 				}
-
 				var files = fileHelper.readFiles(full_name);
 
 				var snHelper = new ServiceNow(config);
 
+
 				files.then(function(all_files){
-
 					for(var i = 0; i <all_files.length; i++){
+
 						var record_name = path.basename(all_files[i].name);
-
-
 						var record_path = path.join("dist",folder_name,record_name);
 			
 						// I need to get the sys_id here
@@ -56,7 +52,12 @@ module.exports = function (grunt) {
 							}
 						};
 						snHelper.table(parms.table).updateRecord(parms,function(err,obj){
-							console.log(obj);
+							if(err){
+								console.error("Error on updateRecord: ", err)
+							}
+							else{
+								console.log("Record updated succsefully",record_name);
+							}
 						});
 
 					}
