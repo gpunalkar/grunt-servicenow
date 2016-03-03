@@ -65,8 +65,6 @@ module.exports = function (grunt) {
 						})();
 
 					}
-
-	>>>>>>> feature-fileHelper
 				});
 			});
 		});
