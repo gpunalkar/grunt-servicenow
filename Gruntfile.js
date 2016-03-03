@@ -2,7 +2,6 @@ var require_config = require("./helper/config_validator");
 
 var fs = require('fs');
 var path = require('path');
-var inquirer = require('inquirer');
 
 module.exports = function (grunt) {
     // ?
