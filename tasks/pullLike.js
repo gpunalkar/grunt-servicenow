@@ -3,8 +3,6 @@ module.exports = function (grunt) {
 
 		grunt.config.set("pull_prefix",prefix);
 
-		console.log(grunt.config("pull_prefix"));
-
-		grunt.task.run("pull:ui_pages");
+		grunt.task.run("pull:" + folder_name);
 	});
 }
