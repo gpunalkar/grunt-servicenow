@@ -77,7 +77,6 @@ module.exports = function (grunt) {
     // grunt.task.loadTasks('./tasks');
 
 
-    grunt.registerTask("yo", ['prompt:pull', 'pullSN']);
     grunt.loadNpmTasks('grunt-contrib-watch');
     grunt.task.renameTask("watch", "watchAndPush");
 
