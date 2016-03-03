@@ -3,66 +3,73 @@ var fs = require('fs'),
     path = require('path'),
     ServiceNow = require('../services/snclient'),
     require_config = require("../helper/config_validator"),
-    require_folder = require("../helper/folder_validator"),
+    FileHelper = require("../helper/file_helper"),
     HashHelper = require('../helper/hash'),
     syncDataHelper = require('../helper/sync_data_validator'),
     destination = path.join(process.cwd(), "dist");
 
 
 module.exports = function (grunt) {
-    grunt.registerTask('pull', 'Pull command.', function (folderName, file_name) {
+    grunt.registerTask('pull', 'Pull command.', function (folder_name,file_name) {
 
         var done = this.async();
-        syncDataHelper.loadData().then(function (sync_data) {
-            var hash = HashHelper(sync_data);
-            require_config().then(function (config) {
-                require_folder(destination).then(function () {
+		syncDataHelper.loadData().then(function (sync_data) {
+			require_config().then(function (config) {
+				var hash = HashHelper(sync_data);
+				var fileHelper = new FileHelper(config);
+				fileHelper.setFolderName(folder_name);
+				fileHelper.setDestination("dist");
+				var snHelper = new ServiceNow(config);
+				var query ="";
 
-                    var snService = new ServiceNow(config);
-                    var query = "";
+				if(file_name){
+					query = config.folders[folder_name].key + "=" + file_name;	
+				}
+				else{
+					query = config.folders[folder_name].key + "STARTSWITHsolution";
+				}
+				snHelper.table(config.folders[folder_name].table).getRecords(query,function(err,obj){
+					var config_object = config.folders[folder_name];
 
-                    // TODO STARTSWITH is part of servicenow api and should happen on snclient
-                    if (file_name) {
-                        query = config.folders[folderName].key + "=" + file_name;
-                    }
-                    else {
-                        query = config.folders[folderName].key + "STARTSWITH" + config.project_prefix;
-                    }
-                    snService.table(config.folders[folderName].table).getRecords(query, function (err, obj) {
-                        var folder_path = path.join(destination, folderName);
-                        require_folder(folder_path).then(function () {
-                            obj.result.forEach(function (result, index) {
-                                (function () {
-                                    var content = result[config.folders[folderName].field];
-                                    var filename = result[config.folders[folderName].key];
+					for(var i = 0; i < obj.result.length; i++){
+						var result = obj.result[i];
+						(function(){
+							var file_name = result[config_object.key];
+							
+							if(config_object.extension){
+								file_name = file_name + "." + config_object.extension;
+							}
+							
+							var dest = path.join("dist", folder_name,file_name);
+							
+							var content = result[config_object.field];
+							
+							fileHelper.saveFile(
+								{
+									dest : dest,
+									content : content
+								}
+							).then(function(){
+								sync_data[dest] = {
+									sys_id: result.sys_id,
+									sys_updated_on: result.sys_updated_on,
+									sys_updated_by: result.sys_updated_by,
+									hash: hash.hashContent(content)
+								};
+								syncDataHelper.saveData(sync_data);
+								done();
+							},function(err){
+								console.error("Save file failed", err);
+								done();
+							});
+						})();
 
-                                    if ('extension' in config.folders[folderName]) {
-                                        filename = filename + "." + config.folders[folderName].extension;
-                                    }
+					}
 
-                                    var file_path = path.join(folder_path, filename);
-                                    fs.writeFile(file_path, content, function (err) {
-                                        if (err) {
-                                            console.error("Error writing new file", err)
-                                        }
-                                        else {
-                                            console.log("Creating file " + file_path);
-                                            sync_data[file_path] = {
-                                                sys_id: result.sys_id,
-                                                sys_updated_on: result.sys_updated_on,
-                                                sys_updated_by: result.sys_updated_by,
-                                                hash: hash.hashContent(content)
-                                            };
-                                        }
-                                    });
-                                })();
-                            });
-                            syncDataHelper.saveData(sync_data);
-                        });
-                    });
-                });
-            });
-        });
+	>>>>>>> feature-fileHelper
+				});
+			});
+		});
 
     });
 };
