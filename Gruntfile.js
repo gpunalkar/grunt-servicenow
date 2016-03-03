@@ -55,6 +55,7 @@ module.exports = function (grunt) {
         pull: snConfig.folders,
         push: snConfig.folders,
         watchAndPush: watchObj,
+		destination : "dist",
         prompt: {
             pull: {
                 options: {
