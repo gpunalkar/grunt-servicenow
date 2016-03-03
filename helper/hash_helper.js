@@ -4,7 +4,6 @@ module.exports = function (sync_data) {
         return crypto.createHash('md5').update(content).digest('hex');
     };
 
-    // TO be here of file_record?
     var saveHash = function (file_path, hash) {
         if (!(file_path in sync_data)) {
             sync_data[file_path] = {}
@@ -28,7 +27,7 @@ module.exports = function (sync_data) {
         }
 
         if (hash_comparison || force) {
-            this.saveHash(file_path, new_hash);
+            saveHash(file_path, new_hash);
         }
 
         return hash_comparison || force;
