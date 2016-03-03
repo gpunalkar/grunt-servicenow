@@ -1,3 +1,5 @@
+var syncDataHelper = require('../helper/sync_data_validator');
+
 module.exports = function (sync_data) {
 
     var saveHash = function (file_path, hash) {
@@ -5,7 +7,8 @@ module.exports = function (sync_data) {
             sync_data[file_path] = {}
         }
         sync_data[file_path].hash = hash;
-        //fileHelper.save(sync_data);
+
+        syncDataHelper.saveData(sync_data);
     };
 
     this.hashContent = function (content) {
