@@ -2,9 +2,6 @@
 var ServiceNow = require('../services/snclient'),
 	require_config = require("../helper/config_validator"),
 	FileHelper = require("../helper/file_helper");
-//	FileRecordUtil = require("../helper/file_record"),
-//	FileRecord = FileRecordUtil.fileRecord,
-//	makeHash = FileRecordUtil.makeHash;
 
 var fs = require('fs'),
 	path = require('path');
