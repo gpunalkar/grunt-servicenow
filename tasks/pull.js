@@ -18,7 +18,7 @@ module.exports = function (grunt) {
             require_config().then(function (config) {
                 require_folder(destination).then(function () {
 
-                    var snHelper = new ServiceNow(config);
+                    var snService = new ServiceNow(config);
                     var query = "";
 
                     // TODO STARTSWITH is part of servicenow api and should happen on snclient
@@ -28,7 +28,7 @@ module.exports = function (grunt) {
                     else {
                         query = config.folders[folderName].key + "STARTSWITH" + config.project_prefix;
                     }
-                    snHelper.table(config.folders[folderName].table).getRecords(query, function (err, obj) {
+                    snService.table(config.folders[folderName].table).getRecords(query, function (err, obj) {
                         var folder_path = path.join(destination, folderName);
                         require_folder(folder_path).then(function () {
                             obj.result.forEach(function (result, index) {
