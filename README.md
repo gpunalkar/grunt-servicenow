@@ -7,12 +7,18 @@ You need Grunt CLI installed globally:
 ```sh
 $ npm install grunt-servicenow --save-dev
 ```
-## watchAndPush
+
+### Tasks
+	[watchAndPush](#watchAndPush)
+	
+	[pull](#pull)
+	
+## watchAndPush <a name="watchAndPush"></a>
 ```sh
 $ grunt watch
 $ grunt watch:FolderName
 ```
-## pull
+## pull <a name="pull"></a>
 
 ### With Prompts
 This task will prompt what record type(s) you want to pull down
@@ -43,7 +49,7 @@ Wraps the pull task and adds a prefix to search a given record type (e.g. find a
 $ grunt pullLike:RecordType:prefix
 ```
 
-## push
+## push <a name="push"></a>
 
 ### With Prompts
 This task will prompt what folders you wan to update from and ask for a file wildcard 
@@ -68,7 +74,7 @@ This updates a specific record from a specific folder (e.g. a ui\_page called __
 $ grunt push:FolderName:FileName
 ```
 
-## pullLike
+## pushLike
 Wraps the push task and adds a prefix to search a given folder (e.g. find all ui\_pages that start with __prefix__)
 
 ```sh
