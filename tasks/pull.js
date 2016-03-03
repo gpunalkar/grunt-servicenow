@@ -37,11 +37,11 @@ module.exports = function (grunt) {
 						}
 						snHelper.table(config.folders[folder_name].table).getRecords(query,function(err,obj){
 							var config_object = config.folders[folder_name];
+
 							var savePromise = new Promise(function(resolve,reject){
 								var files_to_save = [];
 								for(var i = 0; i < obj.result.length; i++){
 									var result = obj.result[i];
-
 
 									(function(){
 										var file_name = result[config_object.key];
@@ -61,9 +61,10 @@ module.exports = function (grunt) {
 											sys_updated_by: result.sys_updated_by,
 											hash: hash.hashContent(content)
 										};
-
+										console.log(i + "=" + obj.result.length);
 										if(i === obj.result.length-1){
-											resolve(files_to_save)
+											console.log("hash");
+											resolve(files_to_save);
 										}
 
 
@@ -74,7 +75,7 @@ module.exports = function (grunt) {
 							});
 
 							savePromise.then(function(files_to_save){
-
+								console.log("hi");
 								fileHelper.saveFiles(files_to_save
 									).then(function(){
 										syncDataHelper.saveData(sync_data);
@@ -119,7 +120,6 @@ module.exports = function (grunt) {
 						for(var i = 0; i < answers.folders.length; i++){
 
 							pullRecords(answers.folders[i]).then(function(){
-								console.log(i)
 								if(i === answers.folders.length){
 									done();
 								}
