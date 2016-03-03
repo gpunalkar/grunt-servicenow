@@ -13,9 +13,13 @@ module.exports = function (grunt) {
 
         var done = this.async();
 		var destination = path.join(process.cwd(), grunt.config('destination'));
+		grunt.option.init([{
 
+		}])
 		syncDataHelper.loadData().then(function (sync_data) {
 			require_config().then(function (config) {
+				var prefix = grunt.config("pull_prefix");
+
 				var hash = HashHelper(sync_data);
 
 				var snHelper = new ServiceNow(config);
@@ -24,9 +28,15 @@ module.exports = function (grunt) {
 				if(file_name){
 					query = config.folders[folder_name].key + "=" + file_name;	
 				}
+				else if(prefix)
+				{
+
+					query = config.folders[folder_name].key + "STARTSWITH" + prefix;
+				}
 				else{
 					query = config.folders[folder_name].key + "STARTSWITHsolution";
 				}
+				console.log(query);
 				snHelper.table(config.folders[folder_name].table).getRecords(query,function(err,obj){
 					var config_object = config.folders[folder_name];
 					var savePromise = new Promise(function(resolve,reject){
@@ -69,7 +79,6 @@ module.exports = function (grunt) {
 
 						fileHelper.saveFiles(files_to_save
 							).then(function(){
-
 								syncDataHelper.saveData(sync_data);
 								done();
 							},function(err){
