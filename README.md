@@ -12,6 +12,7 @@ $ npm install grunt-servicenow --save-dev
 - [watchAndPush](#watchAndPush) - Monitor all directories for changes and push to instance
 - [pull](#pull) - Grab changes to records from instance and bring down
 - [push](#push) - Grab local changes and push to instance
+- [runserver](#runserver) - Run a local server that proxies REST requests to the defined instance
 	
 ## watchAndPush <a name="watchAndPush"></a>
 ```sh
@@ -81,7 +82,7 @@ Wraps the push task and adds a prefix to search a given folder (e.g. find all ui
 $ grunt pullLike:FolderName:prefix
 ```
 
-## runserver
+## runserver <a href="runserver"></a>
 ```sh
 $ grunt runserver #default port 3000
 $ grunt runserver:PORT
