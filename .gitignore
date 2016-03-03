@@ -2,4 +2,3 @@ node_modules/
 dist/
 .sn-config.json
 .sn-sync_data.json
-/.sn-sync_data.json
