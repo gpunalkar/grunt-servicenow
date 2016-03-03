@@ -44,11 +44,37 @@ $ grunt pullLike:RecordType:prefix
 ```
 
 ## push
+
+### With Prompts
+This task will prompt what folders you wan to update from and ask for a file wildcard 
+
 ```sh
-$ grunt push #(for security reason we might disble this)
-$ grunt push:FolderName
-$ grunt push:FolderName:FilePath
+$ grunt push
 ```
+
+### Specifc Folder
+This updates all records from the files in the given folder (e.g. ui/_pages, content/_css). You can access any folder specified in `.sn-config.json`
+
+**Note** If you want to use a prefix for finding records, use `grunt push` or `grunt pushLike`
+
+```sh
+$ grunt push:FolderName
+```
+
+### Specific File
+This updates a specific record from a specific folder (e.g. a ui\_page called __fileName__).
+
+```sh
+$ grunt push:FolderName:FileName
+```
+
+## pullLike
+Wraps the push task and adds a prefix to search a given folder (e.g. find all ui\_pages that start with __prefix__)
+
+```sh
+$ grunt pullLike:FolderName:prefix
+```
+
 ## runserver
 ```sh
 $ grunt runserver #default port 3000
