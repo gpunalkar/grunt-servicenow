@@ -1,25 +1,28 @@
 var path = require('path'),
-	fs = require('fs-extra');
+	fs = require('fs-extra'),
+	glob = require('glob');
 
 module.exports = function () {
 
-    var readDir = function (dir_path) {
+    var readDir = function (dir_path,prefix) {
         var all_files = [];
         return new Promise(function (resolve, reject) {
-            fs.readdir(dir_path, function (err, files) {
+			if(prefix){
+				dir_path = path.join(dir_path, prefix);
+			}
+			glob(dir_path, function (err, files) {
                 if (err) {
-                    console.error("Error reading folder " + files_path, err);
+                    console.error("Error reading folder " + files, err);
                     reject(err)
                 }
+				var num_of_files = files.length;
 
-
-                var num_of_files = files.length;
                 var num_of_files_loaded = 0;
                 files.forEach(function (file_name) {
-                    fs.readFile(read_name, "utf-8", function (err, data) {
+                    fs.readFile(file_name, "utf-8", function (err, data) {
                         num_of_files_loaded++;
                         all_files.push({
-							name : path.basename(file_path),
+							name : path.basename(file_name),
 							content : data
 						});
 
@@ -100,11 +103,11 @@ module.exports = function () {
      * @param files_path - This should be a path to a directory
      * @returns {*}
      */
-    this.readFiles = function (files_path) {
+    this.readFiles = function (files_path,prefix) {
 		return new Promise(function (resolve, reject) {
             fs.lstat(files_path, function (err, stats) {
                 if (stats.isDirectory()) {
-                    readDir(files_path).then(resolve,reject);
+                    readDir(files_path,prefix).then(resolve,reject);
                 } else {
 
                     readFile(files_path).then(resolve,reject);

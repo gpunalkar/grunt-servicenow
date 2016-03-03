@@ -19,44 +19,54 @@ module.exports = function (grunt) {
 		syncDataHelper.loadData().then(function (sync_data) {
 			require_config().then(function (config) {
 
-//				var fileHelper = new FileHelper();
+				var prefix = grunt.config("push_prefix"),
+					destination = path.join(process.cwd(), grunt.config('destination')),
+					full_name = path.join(destination,folder_name);
 
-				var full_name;
-				if(file_name){
-					full_name = path.join(destination,folder_name,file_name);
 
+				if(prefix){
+					prefix = prefix + "*";
+
+					if(config.folders[folder_name].extension){
+
+						prefix = prefix + "." + config.folders[folder_name].extension;
+					}
+
+				}
+				else if(file_name){
+					full_name = path.join(destination,file_name);
 					if(config.folders[folder_name].extension){
 
 						full_name = full_name + "." + config.folders[folder_name].extension;
 					}
 				}
-				var files = fileHelper.readFiles(full_name);
-
-				var snHelper = new ServiceNow(config);
+				var files = fileHelper.readFiles(full_name,prefix),
+					snHelper = new ServiceNow(config);
 
 
 				files.then(function(all_files){
 					for(var i = 0; i <all_files.length; i++){
 
-						var record_name = path.basename(all_files[i].name);
-						var record_path = path.join("dist",folder_name,record_name);
-			
-						// I need to get the sys_id here
-						var parms = {
-							table : config.folders[folder_name].table,
-							sys_id : sync_data[record_path].sys_id,
-							payload : {
-									"html" : all_files[i].content,
-									"name" : file_name
+						var record_name = path.basename(all_files[i].name),
+							record_path = path.join(destination,folder_name,record_name),
+							parms = {
+								table : config.folders[folder_name].table,
+								sys_id : sync_data[record_path].sys_id,
+								payload : {
+										"html" : all_files[i].content
 
-							}
-						};
+								}
+							};
+
+
+
+
 						snHelper.table(parms.table).updateRecord(parms,function(err,obj){
 							if(err){
 								console.error("Error on updateRecord: ", err)
 							}
 							else{
-								console.log("Record updated succsefully",record_name);
+								console.log("Record updated successfully",record_name);
 							}
 						});
 
