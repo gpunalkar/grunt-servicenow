@@ -61,9 +61,8 @@ module.exports = function (grunt) {
 											sys_updated_by: result.sys_updated_by,
 											hash: hash.hashContent(content)
 										};
-										console.log(i + "=" + obj.result.length);
+
 										if(i === obj.result.length-1){
-											console.log("hash");
 											resolve(files_to_save);
 										}
 
@@ -75,7 +74,6 @@ module.exports = function (grunt) {
 							});
 
 							savePromise.then(function(files_to_save){
-								console.log("hi");
 								fileHelper.saveFiles(files_to_save
 									).then(function(){
 										syncDataHelper.saveData(sync_data);
@@ -108,6 +106,7 @@ module.exports = function (grunt) {
 							type: "input",
 							name: "prefix",
 							message: "Please enter a search term to use for finding records",
+							default : grunt.config("appPrefix"),
 							when : function (answers){
 								return (answers.no_query) ? false : true;
 							}
