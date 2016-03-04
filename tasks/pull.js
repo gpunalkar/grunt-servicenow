@@ -133,7 +133,9 @@ module.exports = function (grunt) {
 
 				}
 				else{
-					var requestFor = path.join(folder_name,file_name);
+
+					var requestFor = (file_name) ? path.join(folder_name,file_name) : folder_name;
+
 					pullRecords(folder_name).then(function(){
 						console.log("Completed pull request");
 						done();
