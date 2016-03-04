@@ -14,7 +14,6 @@ module.exports = function (grunt) {
 		
         var done = this.async();
 		var destination = path.join(process.cwd(), grunt.config('destination'));
-		
 		syncDataHelper.loadData().then(function (sync_data) {
 			require_config().then(function (config) {
 				var hash = HashHelper(sync_data);
@@ -36,6 +35,10 @@ module.exports = function (grunt) {
 							query = config.folders[folder_name].key + "STARTSWITH" + prefix;
 						}
 						snHelper.table(config.folders[folder_name].table).getRecords(query,function(err,obj){
+							if (obj.result.length === 0){
+								reject("No records found matched your query: " + query);
+							}
+
 							var config_object = config.folders[folder_name];
 
 							var savePromise = new Promise(function(resolve,reject){
@@ -130,13 +133,20 @@ module.exports = function (grunt) {
 
 				}
 				else{
+					var requestFor = path.join(folder_name,file_name);
 					pullRecords(folder_name).then(function(){
-						console.log("success");
+						console.log("Completed pull request");
+						done();
+					},function(err){
+
+						console.error("\nThere was a problem completing this for: " + requestFor + "\n",err);
 						done();
 					})
 				}
 
 			});
+		},function(err){
+			console.log("Problem loading sync data.");
 		});
 
     });
