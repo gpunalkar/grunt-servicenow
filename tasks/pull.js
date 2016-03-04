@@ -11,10 +11,10 @@ var fs = require('fs'),
 
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folder_name,file_name) {
-
+		
         var done = this.async();
 		var destination = path.join(process.cwd(), grunt.config('destination'));
-
+		
 		syncDataHelper.loadData().then(function (sync_data) {
 			require_config().then(function (config) {
 				var hash = HashHelper(sync_data);

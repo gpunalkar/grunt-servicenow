@@ -9,8 +9,9 @@ var fs = require('fs'),
 module.exports = function () {
 
     this.loadData = function () {
+		
         return new Promise(function (fulfill, reject) {
-
+			
             fs.lstat(sync_data_path, function (err, stats) {
                 if (err) {
                     if (err.code == 'ENOENT') {
