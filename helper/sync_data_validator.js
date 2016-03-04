@@ -9,8 +9,9 @@ var fs = require('fs'),
 module.exports = function () {
 
     this.loadData = function () {
+		
         return new Promise(function (fulfill, reject) {
-
+			
             fs.lstat(sync_data_path, function (err, stats) {
                 if (err) {
                     if (err.code == 'ENOENT') {
@@ -23,7 +24,13 @@ module.exports = function () {
                         if (err) {
                             console.log(err)
                         } else {
-                            fulfill(JSON.parse(data));
+							if(data.length === 0){
+								reject("File is blank");
+							}
+							else{
+								fulfill(JSON.parse(data));
+							}
+
                         }
                     });
                 }
