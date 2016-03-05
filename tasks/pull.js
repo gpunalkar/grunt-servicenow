@@ -99,21 +99,14 @@ module.exports = function (grunt) {
 							name: "folders",
 							message: "What record types do you want to pull from?",
 							choices : Object.keys(config.folders)
-						},
-						{
-							type: "confirm",
-							name: "no_query",
-							message: "Do you want to get all records for the selected types?"
-						},
-						{
+						}, {
 							type: "input",
 							name: "prefix",
 							message: "Please enter a search term to use for finding records",
-							default : grunt.config("appPrefix"),
-							when : function (answers){
-								return (answers.no_query) ? false : true;
-							}
-
+							default : config.project_prefix
+							//when : function (answers){
+							//	return (answers.no_query) ? false : true;
+							//}
 						}
 					];
 					inquirer.prompt(questions, function (answers) {
