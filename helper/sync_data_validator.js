@@ -44,7 +44,7 @@ module.exports = function () {
                     return console.log(err);
                     reject();
                 }
-                console.log("The file was saved!");
+                console.log("The sync file was saved!");
                 fulfill();
             });
         });
