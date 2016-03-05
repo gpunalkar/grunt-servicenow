@@ -124,7 +124,7 @@ module.exports = function (grunt) {
 
 						snHelper.setup().getRecords(obj,function(err,obj){
 							if (obj.result.length === 0){
-								reject("No records found matched your query: " + query);
+								reject("No records found matched your query: " + _query);
 							}
 
 							updateSyncData(obj,folder_name).then(function(files_to_save){
