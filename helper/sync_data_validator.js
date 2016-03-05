@@ -24,8 +24,10 @@ module.exports = function () {
                         if (err) {
                             console.log(err)
                         } else {
-                            if (data.length === 0)
+                            if (data.length === 0) {
                                 data = "{}";
+                                return reject()
+                            }
                             fulfill(JSON.parse(data));
                         }
                     });
