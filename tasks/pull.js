@@ -52,15 +52,19 @@ module.exports = function (grunt) {
 		};
 
 		var makeQuery = function(folder_name, file_name,prefix){
-			var query = "";
+			var query = "",
+				key = _config.folders[folder_name].key;
 
 			if(file_name){
-				query = _config.folders[folder_name].key + "=" + file_name;
+				query =  key + "=" + file_name;
 			}
 			else if(prefix)
 			{
-				query = _config.folders[folder_name].key + "STARTSWITH" + prefix;
+				query = key + "STARTSWITH" + prefix;
 
+			}
+			else{
+				query = key + "STARTSWITH" + _config.project_prefix;
 			}
 
 			_query = query;
@@ -154,6 +158,7 @@ module.exports = function (grunt) {
 					});
 				}
 				else{
+					makeQuery(folder_name,file_name);
 					pullRecords(folder_name).then(function(){
 						done();
 					},function(err){
