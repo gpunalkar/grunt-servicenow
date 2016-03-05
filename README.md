@@ -37,23 +37,24 @@ $ grunt pull
 ```
 
 ### Specific Record Type
-This pulls down all records in the given record type (e.g. ui_pages, content_css). You can access any record type specific in `.sn-config.json`
+This pulls down all records in the given record type (e.g. ui_pages, content_css). By default, we will only pull down files prefixed with whatever **project prefix** you specified during `grunt init`.
 
-**Note** If you want to use a prefix for finding records, use `grunt pull` or `grunt pullLike`
+You can access any record type specified in `.sn-config.json`
+
 
 ```sh
 $ grunt pull:RecordType
 ```
 
 ### Specific Record
-This pulls down a specific record from a specific record type (e.g. a ui\_page called __recordName__).
+This pulls down a specific record from a specific record type (e.g. a ui\_page called __project\_prefixrecordName__). By default, we will prepend the name you specify with the **project prefix** you specified during `grunt init`.
 
 ```sh
 $ grunt pull:RecordType:RecordName
 ```
 
 ## pullLike
-Wraps the pull task and adds a prefix to search a given record type (e.g. find all ui\_pages that start with __prefix__)
+Wraps the pull task and adds a prefix to search a given record type (e.g. find all ui\_pages that start with __prefix__). This enables you to override the prefix specified in `.sn-config.json` or pull down a file with a specific name.
 
 ```sh
 $ grunt pullLike:RecordType:prefix
