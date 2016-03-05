@@ -94,15 +94,14 @@ module.exports = function (grunt) {
 
 								(function(){
 									var record_name = path.basename(all_files[i].name),
-									record_path = path.join(destination,folder_name,record_name),
-									parms = {
-										table : config.folders[folder_name].table,
-										sys_id : sync_data[record_path].sys_id,
-										payload : {
-												"html" : all_files[i].content
-
-										}
-									};
+										payload = {},
+										record_path = path.join(destination,folder_name,record_name),
+										parms = {
+											table : config.folders[folder_name].table,
+											sys_id : sync_data[record_path].sys_id,
+											payload : payload
+										};
+									payload[config.folders[folder_name].field] = all_files[i].content;
 
 									snHelper.updateRecord(parms,function(err,obj){
 
