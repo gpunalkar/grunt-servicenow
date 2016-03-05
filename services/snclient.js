@@ -159,12 +159,12 @@ module.exports = restler.service(
 				send(parms);
 			}
 			
-			function updateRecord(query, callback) {
+			function updateRecord(obj, callback) {
 				var parms = {
-					table: tableName,
-					sys_id : query.sys_id,
+					table: obj.table,
+					sys_id : obj.sys_id,
 					action : 'update',
-					postObj : query.payload,
+					postObj : obj.payload,
 					callback : callback
 				};
 				
