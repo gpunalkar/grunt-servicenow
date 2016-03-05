@@ -13,7 +13,16 @@ $ npm install grunt-servicenow --save-dev
 - [pull](#pull) - Grab changes to records from instance and bring down
 - [push](#push) - Grab local changes and push to instance
 - [runserver](#runserver) - Run a local server that proxies REST requests to the defined instance
-	
+
+## init <a name="init"></a>
+This sets up the configuration file with a hash of your instance credentials, insstance name, and project prefix
+
+```sh
+$ grunt init
+```
+![grunt init](images/gruntInitTask.gif "Animation that shows init task")
+
+**This is a mandatory tasks to run for all instance related tasks.**
 ## watchAndPush <a name="watchAndPush"></a>
 ```sh
 $ grunt watch
