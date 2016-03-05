@@ -55,14 +55,17 @@ module.exports = function (grunt) {
 			var query = "",
 				key = _config.folders[folder_name].key;
 
+			// if file name exists pull the specific file
 			if(file_name){
-				query =  key + "=" + file_name;
+				query =  key + "=" + _config.project_prefix + file_name;
 			}
+			// if prefix specified in pullLike or via prompt use STARTSWITH
 			else if(prefix)
 			{
 				query = key + "STARTSWITH" + prefix;
 
 			}
+			// otherwise always use the prefix
 			else{
 				query = key + "STARTSWITH" + _config.project_prefix;
 			}
