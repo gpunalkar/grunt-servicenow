@@ -33,7 +33,7 @@ module.exports = restler.service(
 		
 	},
 	{
-		table : function table(tableName) {
+		setup : function setup() {
 			var client = this;
 			
 			function validateResponse(result, res) {
@@ -119,14 +119,9 @@ module.exports = restler.service(
 					};
 					
 				}
-//				if(request.parmName){
-//					urlObj.query['sysparm_' + request.parmName] = request.parmValue;
-//				}
-			
+
 				var path = url.format(urlObj);
-				
-//				console.debug('snc-client send() path: ' + path);
-				
+
 				function handleResponse(result, res){
 					var err = validateResponse(result, res, request);
 
@@ -151,12 +146,12 @@ module.exports = restler.service(
 				}
 			}
 			
-			function getRecords(query, callback) {
+			function getRecords(obj, callback) {
 				
 				var parms = {
-					table: tableName,
+					table: obj.table,
 					parmName : 'query',
-					parmValue : query,
+					parmValue : obj.query,
 					rows : 50,
 					callback : callback
 				};
