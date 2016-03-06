@@ -171,11 +171,11 @@ module.exports = restler.service(
 				send(parms);
 			}
 			
-			function createRecord(query, callback) {
+			function createRecord(obj, callback) {
 				var parms = {
-					table: tableName,
+					table: obj.table,
 					action : 'create',
-					postObj : query.payload,
+					postObj : obj.payload,
 					callback : callback
 				};
 				
