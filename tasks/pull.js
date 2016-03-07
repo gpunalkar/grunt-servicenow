@@ -93,30 +93,6 @@ var updateSyncData = function (obj, folder_name) {
     });
 };
 
-var pullRecords = function (folder_name, file_name, like) {
-    return new Promise(function (resolve, reject) {
-        var obj = {
-            table: config.folders[folder_name].table,
-            query: _query
-        };
-
-        snService.setup().getRecords(obj, function (err, obj) {
-            updateSyncData(obj, folder_name).then(function (files_to_save) {
-                fileHelper.saveFiles(files_to_save
-                ).then(function () {
-                    syncDataHelper.saveData(sync_data);
-                    resolve();
-                }, function (err) {
-                    console.error("Save file failed", err);
-                    reject(err);
-                });
-
-            });
-        });
-    });
-
-};
-
 
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folder_name, file_name) {
@@ -125,13 +101,37 @@ module.exports = function (grunt) {
             require_config().then(function (config) {
                 var hash = HashHelper(sync_data);
                 var snService = new ServiceNow(config);
-                var like = true;
+
+                var pullRecords = function (folder_name, file_name, like) {
+                    return new Promise(function (resolve, reject) {
+                        var obj = {
+                            table: config.folders[folder_name].table,
+                            query: _query
+                        };
+
+                        snService.setup().getRecords(obj, function (err, obj) {
+                            updateSyncData(obj, folder_name).then(function (files_to_save) {
+                                fileHelper.saveFiles(files_to_save
+                                ).then(function () {
+                                    syncDataHelper.saveData(sync_data);
+                                    resolve();
+                                }, function (err) {
+                                    console.error("Save file failed", err);
+                                    reject(err);
+                                });
+
+                            });
+                        });
+                    });
+
+                };
+
 
                 if (!folder_name && !file_name) {
                     askQuestions().then(function (answers) {
                         var promises = [];
                         answers.folders.forEach(function (folder) {
-                            promises.push(pullRecords(folder, answers.prefix, like));
+                            promises.push(pullRecords(folder, answers.prefix, false));
                         });
 
                         Promise.all(promises).then(function () {
@@ -139,12 +139,14 @@ module.exports = function (grunt) {
                         });
                     });
                 } else {
-
                     var file_name_or_prefix = file_name || config.project_prefix;
+                    var exact_filename = false;
                     if (file_name) {
-                        like = false;
+                        exact_filename = true;
                     }
-                    pullRecords(folder_name, file_name_or_prefix, like).then(function () {
+
+                    pullRecords(folder_name, file_name_or_prefix, exact_filename).then(function () {
+                        console.log('Done Pulling!');
                         done();
                     }, function (err) {
                         console.error("\nThere was a problem completing this for: " + folder_name + "\n", err);
