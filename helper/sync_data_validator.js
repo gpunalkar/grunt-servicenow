@@ -16,7 +16,7 @@ module.exports = function () {
                 if (err) {
                     if (err.code == 'ENOENT') {
                         fs.writeFile(sync_data_path, JSON.stringify({}), function (err) {
-                            fulfill(JSON.parse({}));
+                            fulfill({});
                         });
                     }
                 } else {
