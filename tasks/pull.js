@@ -9,10 +9,6 @@ var fs = require('fs'),
     syncDataHelper = require('../helper/sync_data_validator');
 
 
-var makeDestination = function (dest) {
-    return path.join(process.cwd(), dest);
-};
-
 var askQuestions = function () {
     return new Promise(function (resolve, reject) {
         var questions = [
@@ -38,27 +34,6 @@ var askQuestions = function () {
 
     });
 
-};
-
-var makeQuery = function (folder_name, file_name, prefix) {
-    var query = "",
-        key = _config.folders[folder_name].key;
-
-    // if file name exists pull the specific file
-    if (file_name) {
-        query = key + "=" + _config.project_prefix + file_name;
-    }
-    // if prefix specified in pullLike or via prompt use STARTSWITH
-    else if (prefix) {
-        query = key + "STARTSWITH" + prefix;
-
-    }
-    // otherwise always use the prefix
-    else {
-        query = key + "STARTSWITH" + _config.project_prefix;
-    }
-
-    return query;
 };
 
 var updateSyncData = function (obj, folder_name) {
@@ -104,9 +79,16 @@ module.exports = function (grunt) {
 
                 var pullRecords = function (folder_name, file_name, exact_filename) {
                     return new Promise(function (resolve, reject) {
+                        var operator = "STARTSWITH";
+                        if (exact_filename) {
+                            operator = "=";
+                        }
+
+                        var query = config.folders[folder_name].key + operator + file_name;
+
                         var obj = {
                             table: config.folders[folder_name].table,
-                            query: _query
+                            query: query
                         };
 
                         snService.setup().getRecords(obj, function (err, obj) {
@@ -125,7 +107,7 @@ module.exports = function (grunt) {
                     });
 
                 };
-                
+
                 if (!folder_name && !file_name) {
                     askQuestions().then(function (answers) {
                         var promises = [];
