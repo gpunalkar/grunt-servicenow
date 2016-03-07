@@ -79,6 +79,7 @@ module.exports = function (grunt) {
 					table : config_folder.table,
 					query : getQuery
 				};
+				console.log(getQuery);
 				snHelper.getRecords(queryObj,function(err,obj){
 					if(err){
 						console.log("Error getting records: ", err);
@@ -92,6 +93,9 @@ module.exports = function (grunt) {
 						new_file.extension = config_folder.extension;
 
 						resolve(new_file);
+					}
+					else{
+						console.log("record exists");
 					}
 
 				});
@@ -114,7 +118,7 @@ module.exports = function (grunt) {
 
 						snHelper.createRecord(postObj,function(err, result){
 							counter++;
-							updateSyncData(records[index].file_name,result)
+							updateSyncData(records[index].file_name,result,records[index].field)
 
 							if(counter === records.length){
 								resolve();
@@ -128,8 +132,6 @@ module.exports = function (grunt) {
 		};
 
 		var askToCreateNewFiles = function() {
-
-
 			(function(){
 				return new Promise(function(resolve, reject){
 					var files = [];
@@ -168,14 +170,13 @@ module.exports = function (grunt) {
 			});
 		};
 
-		function updateSyncData(record, obj){
+		function updateSyncData(record, obj,content_field){
 			var parms = {
 				sys_id: obj.result.sys_id,
 				sys_updated_on: obj.result.sys_created_on,
 				sys_updated_by: obj.result.sys_created_by,
-				hash: hash.hashContent(obj.result.html)
+				hash: hash.hashContent(obj.result[content_field])
 			};
-
 			_sync_data[record] = parms;
 
 		}
@@ -240,7 +241,10 @@ module.exports = function (grunt) {
 											content : all_files[i].content
 
 										});
-										num_records--;
+										count++;
+										if(count === num_records){
+											resolve();
+										}
 									}
 
 									else{
@@ -253,7 +257,10 @@ module.exports = function (grunt) {
 
 										updateRecord(parms).then(function(){
 											count++;
-											resolve();
+											if(count === num_records)
+											{
+												resolve();
+											}
 										})
 
 
