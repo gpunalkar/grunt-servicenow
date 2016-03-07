@@ -110,7 +110,7 @@ module.exports = function (grunt) {
 						var payload = {};
 						payload[records[index].key] = path.basename(records[index].file_name,"." + records[i].extension);
 						payload[records[index].field] = records[index].content;
-
+						payload['direct'] = true;
 						var postObj = {
 							table : records[index].table,
 							payload : payload
@@ -249,6 +249,7 @@ module.exports = function (grunt) {
 
 									else{
 										payload[config.folders[folder_name].field] = all_files[i].content;
+										payload['direct'] = true;
 										var	parms = {
 											table : config.folders[folder_name].table,
 											sys_id : sync_data[record_path].sys_id,
