@@ -9,7 +9,7 @@ var fs = require('fs'),
     syncDataHelper = require('../helper/sync_data_validator');
 
 
-function makeDestionation(dest){
+function makeDestination(dest){
 	return path.join(process.cwd(),dest);
 }
 
@@ -21,7 +21,7 @@ module.exports = function (grunt) {
 			_hash = {},
 			_sync_data = {};
         var done = this.async();
-		var destination = makeDestionation(grunt.config('destination'));
+		var destination = makeDestination(grunt.config('destination'));
 
 
 		var prompt = function(){
