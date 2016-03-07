@@ -62,7 +62,6 @@ module.exports = function (grunt) {
 						reject(err);
 					}
 					else{
-						console.log(obj);
 						resolve();
 					}
 				});
