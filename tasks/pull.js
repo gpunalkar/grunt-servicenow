@@ -93,19 +93,14 @@ var updateSyncData = function (obj, folder_name) {
     });
 };
 
-var pullRecords = function (folder_name) {
+var pullRecords = function (folder_name, file_name, like) {
     return new Promise(function (resolve, reject) {
-
         var obj = {
             table: config.folders[folder_name].table,
             query: _query
         };
 
         snService.setup().getRecords(obj, function (err, obj) {
-            if (obj.result.length === 0) {
-                reject("No records found matched your query: " + _query);
-            }
-
             updateSyncData(obj, folder_name).then(function (files_to_save) {
                 fileHelper.saveFiles(files_to_save
                 ).then(function () {
@@ -130,20 +125,26 @@ module.exports = function (grunt) {
             require_config().then(function (config) {
                 var hash = HashHelper(sync_data);
                 var snService = new ServiceNow(config);
+                var like = true;
 
                 if (!folder_name && !file_name) {
-                    prompt().then(function (answers) {
+                    askQuestions().then(function (answers) {
                         var promises = [];
                         answers.folders.forEach(function (folder) {
-                            promises.push(pullRecords(folder))
+                            promises.push(pullRecords(folder, answers.prefix, like));
                         });
 
-                        Promise.all(promises).then(function(){
+                        Promise.all(promises).then(function () {
                             done();
                         });
                     });
                 } else {
-                    pullRecords(folder_name).then(function () {
+
+                    var file_name_or_prefix = file_name || config.project_prefix;
+                    if (file_name) {
+                        like = false;
+                    }
+                    pullRecords(folder_name, file_name_or_prefix, like).then(function () {
                         done();
                     }, function (err) {
                         console.error("\nThere was a problem completing this for: " + folder_name + "\n", err);
