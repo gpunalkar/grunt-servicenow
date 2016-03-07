@@ -102,7 +102,7 @@ module.exports = function (grunt) {
                 var hash = HashHelper(sync_data);
                 var snService = new ServiceNow(config);
 
-                var pullRecords = function (folder_name, file_name, like) {
+                var pullRecords = function (folder_name, file_name, exact_filename) {
                     return new Promise(function (resolve, reject) {
                         var obj = {
                             table: config.folders[folder_name].table,
@@ -125,8 +125,7 @@ module.exports = function (grunt) {
                     });
 
                 };
-
-
+                
                 if (!folder_name && !file_name) {
                     askQuestions().then(function (answers) {
                         var promises = [];
