@@ -1,6 +1,6 @@
-var syncDataHelper = require('../helper/sync_data_validator');
-
-var crypto = require('crypto');
+var syncDataHelper = require('../helper/sync_data_validator'),
+    fs = require('fs'),
+    crypto = require('crypto');
 
 module.exports = function (sync_data) {
 
@@ -20,7 +20,7 @@ module.exports = function (sync_data) {
     this.compareHash = function (file_path) {
         var that = this;
         return new Promise(function (fulfill, reject) {
-            fs.readFile(config_path, 'utf8', function (err, data) {
+            fs.readFile(file_path, 'utf8', function (err, data) {
                 var hash_comparison;
 
                 if (err) {
@@ -32,16 +32,16 @@ module.exports = function (sync_data) {
                 if (!(file_path in sync_data)) {
                     // Use a logger
                     console.log("Hash doesn't exist, creating one.");
-                    hash_comparison = true;
+                    hash_comparison = 0;
                 } else {
-                    hash_comparison = sync_data[file_path].hash == file_hash
+                    hash_comparison = sync_data[file_path].hash.localeCompare(file_hash)
                 }
 
 
-                if (hash_comparison) {
-                    fulfill();
+                if (hash_comparison == 0) {
+                    fulfill(file_path);
                 } else {
-                    reject();
+                    reject(file_path);
                 }
             });
         });

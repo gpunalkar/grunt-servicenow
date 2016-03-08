@@ -92,6 +92,9 @@ module.exports = function (grunt) {
 
                         snService.setup().getRecords(obj, function (err, obj) {
                             var files_to_save = {},
+                                files_different = [],
+                                hashComparePromises = [],
+                                hashComparePromise,
                                 content,
                                 filename,
                                 file_path,
@@ -105,19 +108,37 @@ module.exports = function (grunt) {
                                     file_path = file_path + "." + config.folders[folder_name].extension;
                                 }
                                 dest = path.join(DESTINATION, file_path);
-                                files_to_save[dest] = content;
 
-                                sync_data[dest] = {
-                                    sys_id: element.sys_id,
-                                    sys_updated_on: element.sys_updated_on,
-                                    sys_updated_by: element.sys_updated_by,
-                                    hash: hash.hashContent(content)
-                                };
+                                hashComparePromise = hash.compareHash(file_path);
+                                hashComparePromises.push(hashComparePromise);
+
+                                hashComparePromise.then(function () {
+                                    console.log('Hash compare success');
+                                    files_to_save[dest] = content;
+                                    sync_data[file_path] = {
+                                        sys_id: element.sys_id,
+                                        sys_updated_on: element.sys_updated_on,
+                                        sys_updated_by: element.sys_updated_by,
+                                        hash: hash.hashContent(content)
+                                    };
+                                })
+
+
                             });
-                            fileHelper.saveFiles(files_to_save).then(function () {
-                                syncDataHelper.saveData(sync_data);  // We need to validate that per file base
-                                resolve();
+                            Promise.all(hashComparePromises).then(function (values) {
+                                console.log('Hash compare all');
+                                fileHelper.saveFiles(files_to_save).then(function () {
+                                    syncDataHelper.saveData(sync_data);  // We need to validate that per file base
+                                    resolve();
+                                });
+                            }, function (err) {
+                                console.log('Error here', err);
+                                fileHelper.saveFiles(files_to_save).then(function () {
+                                    syncDataHelper.saveData(sync_data);  // We need to validate that per file base
+                                    resolve();
+                                });
                             });
+
                         });
                     });
 
