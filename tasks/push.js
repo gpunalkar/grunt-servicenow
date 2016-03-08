@@ -226,13 +226,18 @@ module.exports = function (grunt) {
                                     Promise.all(promiseList).then(function () {
                                         promiseList = [];
 
-                                        var fileObj;
+                                        var fileObj,
+                                            payload;
                                         for (var path in filesToSave) {
                                             fileObj = {};
+                                            payload = {};
+
+                                            payload[config.folders[folder_name].field] = filesToSave[path];
+
                                             fileObj = {
                                                 table: config.folders[foldername].table,
                                                 sys_id : sync_data[path].sys_id,
-                                                //postObj : obj.payload,
+                                                postObj : payload,
                                             };
                                             promiseList.push(updateRecord(fileObj));
                                         }
