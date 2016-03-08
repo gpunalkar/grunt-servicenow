@@ -1,4 +1,5 @@
 'use strict';
+
 var fs = require('fs'),
     path = require('path'),
     inquirer = require('inquirer'),
@@ -9,20 +10,20 @@ var fs = require('fs'),
     syncDataHelper = require('../helper/sync_data_validator');
 
 
-var askQuestions = function () {
+var askQuestions = function (config) {
     return new Promise(function (resolve, reject) {
         var questions = [
             {
                 type: "checkbox",
                 name: "folders",
                 message: "What record types do you want to pull from?",
-                choices: Object.keys(_config.folders)
+                choices: Object.keys(config.folders)
 
             }, {
                 type: "input",
                 name: "prefix",
                 message: "Please enter a search term to use for finding records",
-                default: _config.project_prefix
+                default: config.project_prefix
                 //when : function (answers){
                 //	return (answers.no_query) ? false : true;
                 //}
@@ -36,39 +37,6 @@ var askQuestions = function () {
 
 };
 
-var updateSyncData = function (obj, folder_name) {
-
-    return new Promise(function (resolve, reject) {
-        var config_object = _config.folders[folder_name],
-            files_to_save = [];
-
-        for (var i = 0; i < obj.result.length; i++) {
-            var result = obj.result[i],
-                file_name = result[config_object.key];
-
-            if (config_object.extension) {
-                file_name = file_name + "." + config_object.extension;
-            }
-
-            var dest = path.join(destination, folder_name, file_name);
-
-            var content = result[config_object.field];
-
-            files_to_save[dest] = content;
-            _sync_data[dest] = {
-                sys_id: result.sys_id,
-                sys_updated_on: result.sys_updated_on,
-                sys_updated_by: result.sys_updated_by,
-                hash: _hash.hashContent(content)
-            };
-            if (i === obj.result.length - 1) {
-                resolve(files_to_save);
-            }
-        }
-    });
-};
-
-
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folder_name, file_name) {
         var done = this.async();
@@ -76,7 +44,6 @@ module.exports = function (grunt) {
             require_config().then(function (config) {
                 var hash = HashHelper(sync_data);
                 var snService = new ServiceNow(config);
-
                 var pullRecords = function (folder_name, file_name, exact_filename) {
                     return new Promise(function (resolve, reject) {
                         var operator = "STARTSWITH";
@@ -84,32 +51,33 @@ module.exports = function (grunt) {
                             operator = "=";
                         }
 
-                        var query = config.folders[folder_name].key + operator + file_name;
-
                         var obj = {
                             table: config.folders[folder_name].table,
-                            query: query
+                            query: config.folders[folder_name].key + operator + file_name
                         };
 
                         snService.setup().getRecords(obj, function (err, obj) {
-                            updateSyncData(obj, folder_name).then(function (files_to_save) {
-                                fileHelper.saveFiles(files_to_save
-                                ).then(function () {
-                                    syncDataHelper.saveData(sync_data);
-                                    resolve();
-                                }, function (err) {
-                                    console.error("Save file failed", err);
-                                    reject(err);
-                                });
-
+                            obj.result.forEach(function (element) {
+                                console.log(element);
                             });
+                            //updateSyncData(obj, folder_name).then(function (files_to_save) {
+                            //    fileHelper.saveFiles(files_to_save
+                            //    ).then(function () {
+                            //        syncDataHelper.saveData(sync_data);
+                            //        resolve();
+                            //    }, function (err) {
+                            //        console.error("Save file failed", err);
+                            //        reject(err);
+                            //    });
+                            //
+                            //});
                         });
                     });
 
                 };
 
                 if (!folder_name && !file_name) {
-                    askQuestions().then(function (answers) {
+                    askQuestions(config).then(function (answers) {
                         var promises = [];
                         answers.folders.forEach(function (folder) {
                             promises.push(pullRecords(folder, answers.prefix, false));
