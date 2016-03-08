@@ -39,6 +39,7 @@ module.exports = function () {
     };
 
     var readFile = function (file_path) {
+        if (!(path.isAbsolute(file_path))) file_path = path.join(current_path, file_path);
         var all_files = [];
         return new Promise(function (resolve, reject) {
             fs.readFile(file_path, "utf-8", function (err, data) {
@@ -61,18 +62,18 @@ module.exports = function () {
 
     var saveFile = function (file_path, file_content) {
         var _this = this;
-        return new Promise(
-            function (resolve, reject) {
-                fs.outputFile(file_path, file_content, function (err) {
-                    if (err) {
-                        reject(err);
-                    } else {
-                        console.log("Creating file " + file_path);
-                        resolve();
-                    }
-                });
-            }
-        );
+
+        if (!(path.isAbsolute(file_path))) file_path = path.join(current_path, file_path);
+        return new Promise(function (resolve, reject) {
+            fs.outputFile(file_path, file_content, function (err) {
+                if (err) {
+                    reject(err);
+                } else {
+                    console.log("Creating file " + file_path);
+                    resolve();
+                }
+            });
+        });
 
     };
 
@@ -94,7 +95,7 @@ module.exports = function () {
                 promisesList.push(saveFile(file_path, files_to_create[file_path]));
             }
 
-            Promise.all(promisesList).then(function(){
+            Promise.all(promisesList).then(function () {
                 resolve();
             });
         });

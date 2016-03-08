@@ -218,8 +218,9 @@ module.exports = function (grunt) {
                                     })();
 
                                     Promise.all(promiseList).then(function () {
-                                        //fileHelper.saveFiles();
-                                        console.log('All files compared', filesToSave);
+                                        fileHelper.saveFiles(filesToSave).then(function(){
+                                            resolve();
+                                        });
                                     });
 
                                 });
