@@ -16,19 +16,6 @@ module.exports = function (grunt) {
         var done = this.async();
         var force = false;
 
-        var updateRecord = function (parms) {
-            return new Promise(function (resolve, reject) {
-                snService.updateRecord(parms, function (err, obj) {
-                    if (err) {
-                        console.error("Error on updateRecord: ", err)
-                        reject(err);
-                    }
-                    else {
-                        resolve();
-                    }
-                });
-            });
-        };
 
         var getRecord = function (new_file) {
 
@@ -149,6 +136,20 @@ module.exports = function (grunt) {
                     var hash = HashHelper(sync_data);
                     var snService = new ServiceNow(config).setup();
 
+                    var updateRecord = function (parms) {
+                        return new Promise(function (resolve, reject) {
+                            snService.updateRecord(parms, function (err, obj) {
+                                if (err) {
+                                    console.error("Error on updateRecord: ", err)
+                                    reject(err);
+                                }
+                                else {
+                                    resolve();
+                                }
+                            });
+                        });
+                    };
+
                     var askQuestions = function () {
                         return new Promise(function (resolve, reject) {
                             var questions = [
@@ -221,13 +222,34 @@ module.exports = function (grunt) {
                                         });
                                     })();
 
+                                    // Done comparing the hashes
                                     Promise.all(promiseList).then(function () {
-                                        fileHelper.saveFiles(filesToSave).then(function () {
-                                            util.mergeObject(sync_data_update, sync_data);
-                                            syncDataHelper.saveData(sync_data).then(function () {
-                                                resolve();
-                                            });
+                                        promiseList = [];
+
+                                        var fileObj;
+                                        for (var path in filesToSave) {
+                                            fileObj = {};
+                                            fileObj = {
+                                                table: config.folders[foldername].table,
+                                                sys_id : sync_data[path].sys_id,
+                                                //postObj : obj.payload,
+                                            };
+                                            promiseList.push(updateRecord(fileObj));
+                                        }
+
+                                        // Done updating records
+                                        Promise.all(promiseList).then(function () {
+                                            resolve();
+                                            console.log('done pushing')
                                         });
+                                        //sevicenowpush
+                                        // Push doesn't save files, it PUSHES!
+                                        //fileHelper.saveFiles(filesToSave).then(function () {
+                                        //util.mergeObject(sync_data_update, sync_data);
+                                        //syncDataHelper.saveData(sync_data).then(function () {
+                                        //    resolve();
+                                        //});
+                                        //});
                                     });
 
                                 });
