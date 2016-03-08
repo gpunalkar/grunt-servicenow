@@ -3,6 +3,8 @@
   "protocol": "https",
   "auth": "AUTH_HASH",
   "project_prefix" : "PREFIX__",
+  "app_name" : "APP_NAME",
+  "app_dir" : "APP_DIR",	
   "folders": {
     "stylesheets": {
       "table": "content_css",
