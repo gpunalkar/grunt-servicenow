@@ -62,6 +62,7 @@ module.exports = function (grunt) {
                             obj.result.forEach(function (element) {
                                 console.log(element);
                             });
+                            resolve();
                             //updateSyncData(obj, folder_name).then(function (files_to_save) {
                             //    fileHelper.saveFiles(files_to_save
                             //    ).then(function () {
@@ -86,6 +87,7 @@ module.exports = function (grunt) {
                         });
 
                         Promise.all(promises).then(function () {
+                            console.log('All promises done!');
                             done();
                         });
                     });
