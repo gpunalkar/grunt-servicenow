@@ -40,7 +40,6 @@ module.exports = function (grunt) {
                         inquirer.prompt(questions, function (answers) {
                             resolve(answers);
                         });
-
                     });
 
                 };
@@ -107,9 +106,28 @@ module.exports = function (grunt) {
 
                                 if (Object.keys(files_different).length > 0) {
                                     console.log('You have mande changes to the following files.');
-                                    for (var key in files_different) { console.log(" - "+key) }
+                                    for (var key in files_different) {
+                                        console.log(" - " + key)
+                                    }
                                     console.log('Do you want to overwrite your changes?');
-                                    resolve();
+
+                                    var questions = [{
+                                        type: "confirm",
+                                        name: "overwrite",
+                                        message: "Do you want to overwrite your local changes??",
+                                        default: false
+
+                                    }];
+                                    inquirer.prompt(questions, function (answers) {
+                                        if (answers.overwrite) {
+                                            for (var attrname in files_different) { files_to_save[attrname] = files_different[attrname]; }
+                                            for (var attrname in sync_data_different) { sync_data[attrname] = sync_data_different[attrname]; }
+                                        }
+                                        fileHelper.saveFiles(files_to_save).then(function () {
+                                            syncDataHelper.saveData(sync_data);  // We need to validate that per file base
+                                            resolve();
+                                        });
+                                    });
                                 } else {
                                     fileHelper.saveFiles(files_to_save).then(function () {
                                         syncDataHelper.saveData(sync_data);  // We need to validate that per file base
