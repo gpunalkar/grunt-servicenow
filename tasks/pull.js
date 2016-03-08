@@ -10,32 +10,6 @@ var fs = require('fs'),
     syncDataHelper = require('../helper/sync_data_validator');
 
 
-var askQuestions = function (config) {
-    return new Promise(function (resolve, reject) {
-        var questions = [
-            {
-                type: "checkbox",
-                name: "folders",
-                message: "What record types do you want to pull from?",
-                choices: Object.keys(config.folders)
-
-            }, {
-                type: "input",
-                name: "prefix",
-                message: "Please enter a search term to use for finding records",
-                default: config.project_prefix
-                //when : function (answers){
-                //	return (answers.no_query) ? false : true;
-                //}
-            }
-        ];
-        inquirer.prompt(questions, function (answers) {
-            resolve(answers);
-        });
-
-    });
-
-};
 
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folder_name, file_name) {
@@ -44,6 +18,34 @@ module.exports = function (grunt) {
             require_config().then(function (config) {
                 var hash = HashHelper(sync_data);
                 var snService = new ServiceNow(config);
+
+                var askQuestions = function () {
+                    return new Promise(function (resolve, reject) {
+                        var questions = [
+                            {
+                                type: "checkbox",
+                                name: "folders",
+                                message: "What record types do you want to pull from?",
+                                choices: Object.keys(config.folders)
+
+                            }, {
+                                type: "input",
+                                name: "prefix",
+                                message: "Please enter a search term to use for finding records",
+                                default: config.project_prefix
+                                //when : function (answers){
+                                //	return (answers.no_query) ? false : true;
+                                //}
+                            }
+                        ];
+                        inquirer.prompt(questions, function (answers) {
+                            resolve(answers);
+                        });
+
+                    });
+
+                };
+
                 var pullRecords = function (folder_name, file_name, exact_filename) {
                     return new Promise(function (resolve, reject) {
                         var operator = "STARTSWITH";
@@ -77,7 +79,7 @@ module.exports = function (grunt) {
                 };
 
                 if (!folder_name && !file_name) {
-                    askQuestions(config).then(function (answers) {
+                    askQuestions().then(function (answers) {
                         var promises = [];
                         answers.folders.forEach(function (folder) {
                             promises.push(pullRecords(folder, answers.prefix, false));
