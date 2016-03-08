@@ -7,8 +7,40 @@ var fs = require('fs'),
     require_config = require("../helper/config_validator"),
     fileHelper = require("../helper/file_helper"),
     HashHelper = require('../helper/hash'),
-    syncDataHelper = require('../helper/sync_data_validator');
+    syncDataHelper = require('../helper/sync_data_validator'),
+    DESTINATION = 'dist';
 
+var updateSyncData = function (obj, folder_name) {
+
+    return new Promise(function (resolve, reject) {
+        var config_object = _config.folders[folder_name],
+            files_to_save = [];
+
+        for (var i = 0; i < obj.result.length; i++) {
+            var result = obj.result[i],
+                file_name = result[config_object.key];
+
+            if (config_object.extension) {
+                file_name = file_name + "." + config_object.extension;
+            }
+
+            var dest = path.join(destination, folder_name, file_name);
+
+            var content = result[config_object.field];
+
+            files_to_save[dest] = content;
+            _sync_data[dest] = {
+                sys_id: result.sys_id,
+                sys_updated_on: result.sys_updated_on,
+                sys_updated_by: result.sys_updated_by,
+                hash: _hash.hashContent(content)
+            };
+            if (i === obj.result.length - 1) {
+                resolve(files_to_save);
+            }
+        }
+    });
+}
 
 
 module.exports = function (grunt) {
@@ -59,21 +91,33 @@ module.exports = function (grunt) {
                         };
 
                         snService.setup().getRecords(obj, function (err, obj) {
+                            var files_to_save = {},
+                                content,
+                                filename,
+                                file_path,
+                                dest;
                             obj.result.forEach(function (element) {
-                                console.log(element);
+                                content = element[config.folders[folder_name].field];
+                                filename = element.name;
+                                file_path = path.join(folder_name, filename);
+
+                                if ('extension' in config.folders[folder_name]) {
+                                    file_path = file_path + "." + config.folders[folder_name].extension;
+                                }
+                                dest = path.join(DESTINATION, file_path);
+                                files_to_save[dest] = content;
+
+                                sync_data[dest] = {
+                                    sys_id: element.sys_id,
+                                    sys_updated_on: element.sys_updated_on,
+                                    sys_updated_by: element.sys_updated_by,
+                                    hash: hash.hashContent(content)
+                                };
                             });
-                            resolve();
-                            //updateSyncData(obj, folder_name).then(function (files_to_save) {
-                            //    fileHelper.saveFiles(files_to_save
-                            //    ).then(function () {
-                            //        syncDataHelper.saveData(sync_data);
-                            //        resolve();
-                            //    }, function (err) {
-                            //        console.error("Save file failed", err);
-                            //        reject(err);
-                            //    });
-                            //
-                            //});
+                            fileHelper.saveFiles(files_to_save).then(function () {
+                                syncDataHelper.saveData(sync_data);  // We need to validate that per file base
+                                resolve();
+                            });
                         });
                     });
 
