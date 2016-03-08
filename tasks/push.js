@@ -6,6 +6,7 @@ var fs = require('fs'),
     require_config = require("../helper/config_validator"),
     fileHelper = require("../helper/file_helper"),
     HashHelper = require('../helper/hash'),
+    util = require('../helper/util'),
     syncDataHelper = require('../helper/sync_data_validator'),
     DESTINATION = require('../config/constant').DESTINATION;
 
@@ -192,7 +193,8 @@ module.exports = function (grunt) {
                                         filesToSave = {},
                                         newFiles = [],
                                         promiseList = [],
-                                        currentPromise;
+                                        currentPromise,
+                                        sync_data_update = {};
 
                                     (function () {
                                         all_files.forEach(function (file_obj) {
@@ -203,6 +205,8 @@ module.exports = function (grunt) {
                                                     if (sameHash) {
                                                         console.log('File ' + file_obj.name + ' hasnt changed', record_path);
                                                         filesToSave[record_path] = file_obj.content;
+                                                        sync_data_update[record_path] = sync_data[record_path];
+                                                        sync_data_update[record_path].hash = hash.hashContent(file_obj.content);
                                                     } else {
                                                         console.log('File ' + file_obj.name + ' changed');
                                                         filesChanged.push(file_obj);
@@ -218,8 +222,11 @@ module.exports = function (grunt) {
                                     })();
 
                                     Promise.all(promiseList).then(function () {
-                                        fileHelper.saveFiles(filesToSave).then(function(){
-                                            resolve();
+                                        fileHelper.saveFiles(filesToSave).then(function () {
+                                            util.mergeObject(sync_data_update, sync_data);
+                                            syncDataHelper.saveData(sync_data).then(function () {
+                                                resolve();
+                                            });
                                         });
                                     });
 
