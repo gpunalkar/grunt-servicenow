@@ -188,23 +188,21 @@ module.exports = function (grunt) {
                                 }
 
                                 fileHelper.readFiles(foldername, filename).then(function (all_files) {
-                                    var record_path;
-
                                     var filesChanged = [],
-                                        filesDidntChange = [],
+                                        filesToSave = {},
                                         newFiles = [],
                                         promiseList = [],
                                         currentPromise;
 
-                                    all_files.forEach(function (file_obj) {
-                                        (function () {
-                                            record_path = path.join(DESTINATION, foldername, file_obj.name);
+                                    (function () {
+                                        all_files.forEach(function (file_obj) {
+                                            var record_path = path.join(DESTINATION, foldername, file_obj.name);
                                             if (record_path in sync_data) {
                                                 currentPromise = hash.compareHashRemote(record_path, foldername, config);
                                                 currentPromise.then(function (sameHash) {
                                                     if (sameHash) {
-                                                        console.log('File ' + file_obj.name + ' hasnt changed');
-                                                        filesDidntChange.push(file_obj);
+                                                        console.log('File ' + file_obj.name + ' hasnt changed', record_path);
+                                                        filesToSave[record_path] = file_obj.content;
                                                     } else {
                                                         console.log('File ' + file_obj.name + ' changed');
                                                         filesChanged.push(file_obj);
@@ -216,11 +214,12 @@ module.exports = function (grunt) {
                                                 console.log('No local record for file ' + file_obj.name);
                                                 newFiles.push(file_obj);
                                             }
-                                        })();
-                                    });
+                                        });
+                                    })();
 
                                     Promise.all(promiseList).then(function () {
-                                        console.log('All files compared');
+                                        //fileHelper.saveFiles();
+                                        console.log('All files compared', filesToSave);
                                     });
 
                                 });

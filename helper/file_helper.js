@@ -81,7 +81,7 @@ module.exports = function () {
      *
      * @param files_to_create
      * {
-     *  "path/to/file_to_be_created" : "File Content Here"
+     *  "/absolute/path/to/file_to_be_created_or_updated" : "File Content Here"
      * }
      * @returns Promise
      */
@@ -89,14 +89,14 @@ module.exports = function () {
         return new Promise(function (resolve, reject) {
             var total_files = Object.keys(files_to_create).length;
             var files_created = 0;
+            var promisesList = [];
             for (file_path in files_to_create) {
-                saveFile(file_path, files_to_create[file_path]).then(function () {
-                    files_created++;
-                    if (files_created >= total_files) {
-                        resolve();
-                    }
-                })
+                promisesList.push(saveFile(file_path, files_to_create[file_path]));
             }
+
+            Promise.all(promisesList).then(function(){
+                resolve();
+            });
         });
     };
 
