@@ -1,6 +1,7 @@
 var syncDataHelper = require('../helper/sync_data_validator'),
     fs = require('fs'),
-    crypto = require('crypto');
+    crypto = require('crypto'),
+    path = require('path');
 
 module.exports = function (sync_data) {
 
@@ -19,8 +20,10 @@ module.exports = function (sync_data) {
 
     this.compareHash = function (file_path) {
         var that = this;
+        var absolute_path = path.join(process.cwd(), file_path);
         return new Promise(function (fulfill, reject) {
-            fs.readFile(file_path, 'utf8', function (err, data) {
+
+            fs.readFile(absolute_path, 'utf8', function (err, data) {
                 var hash_comparison;
 
                 if (err) {
@@ -39,9 +42,9 @@ module.exports = function (sync_data) {
 
 
                 if (hash_comparison == 0) {
-                    fulfill(file_path);
+                    fulfill(true);
                 } else {
-                    reject(file_path);
+                    fulfill(false);
                 }
             });
         });

@@ -10,39 +10,6 @@ var fs = require('fs'),
     syncDataHelper = require('../helper/sync_data_validator'),
     DESTINATION = 'dist';
 
-var updateSyncData = function (obj, folder_name) {
-
-    return new Promise(function (resolve, reject) {
-        var config_object = _config.folders[folder_name],
-            files_to_save = [];
-
-        for (var i = 0; i < obj.result.length; i++) {
-            var result = obj.result[i],
-                file_name = result[config_object.key];
-
-            if (config_object.extension) {
-                file_name = file_name + "." + config_object.extension;
-            }
-
-            var dest = path.join(destination, folder_name, file_name);
-
-            var content = result[config_object.field];
-
-            files_to_save[dest] = content;
-            _sync_data[dest] = {
-                sys_id: result.sys_id,
-                sys_updated_on: result.sys_updated_on,
-                sys_updated_by: result.sys_updated_by,
-                hash: _hash.hashContent(content)
-            };
-            if (i === obj.result.length - 1) {
-                resolve(files_to_save);
-            }
-        }
-    });
-}
-
-
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folder_name, file_name) {
         var done = this.async();
@@ -92,51 +59,63 @@ module.exports = function (grunt) {
 
                         snService.setup().getRecords(obj, function (err, obj) {
                             var files_to_save = {},
-                                files_different = [],
+                                files_different = {},
+                                sync_data_different = {},
                                 hashComparePromises = [],
                                 hashComparePromise,
                                 content,
                                 filename,
-                                file_path,
-                                dest;
+                                file_path;
                             obj.result.forEach(function (element) {
-                                content = element[config.folders[folder_name].field];
-                                filename = element.name;
-                                file_path = path.join(folder_name, filename);
+                                (function () {
+                                    content = element[config.folders[folder_name].field];
+                                    filename = element.name;
+                                    file_path = path.join(folder_name, filename);
 
-                                if ('extension' in config.folders[folder_name]) {
-                                    file_path = file_path + "." + config.folders[folder_name].extension;
-                                }
-                                dest = path.join(DESTINATION, file_path);
+                                    if ('extension' in config.folders[folder_name]) {
+                                        file_path = file_path + "." + config.folders[folder_name].extension;
+                                    }
+                                    var dest = path.join(DESTINATION, file_path);
 
-                                hashComparePromise = hash.compareHash(file_path);
-                                hashComparePromises.push(hashComparePromise);
+                                    hashComparePromise = hash.compareHash(dest);
+                                    hashComparePromises.push(hashComparePromise);
 
-                                hashComparePromise.then(function () {
-                                    console.log('Hash compare success');
-                                    files_to_save[dest] = content;
-                                    sync_data[file_path] = {
-                                        sys_id: element.sys_id,
-                                        sys_updated_on: element.sys_updated_on,
-                                        sys_updated_by: element.sys_updated_by,
-                                        hash: hash.hashContent(content)
-                                    };
-                                })
-
-
+                                    hashComparePromise.then(function (hash_same) {
+                                        if (hash_same) {
+                                            files_to_save[dest] = content;
+                                            sync_data[dest] = {
+                                                sys_id: element.sys_id,
+                                                sys_updated_on: element.sys_updated_on,
+                                                sys_updated_by: element.sys_updated_by,
+                                                hash: hash.hashContent(content)
+                                            };
+                                        } else {
+                                            files_different[dest] = content;
+                                            sync_data_different[dest] = {
+                                                sys_id: element.sys_id,
+                                                sys_updated_on: element.sys_updated_on,
+                                                sys_updated_by: element.sys_updated_by,
+                                                hash: hash.hashContent(content)
+                                            };
+                                        }
+                                    });
+                                })();
                             });
-                            Promise.all(hashComparePromises).then(function (values) {
+                            Promise.all(hashComparePromises).then(function () {
                                 console.log('Hash compare all');
-                                fileHelper.saveFiles(files_to_save).then(function () {
-                                    syncDataHelper.saveData(sync_data);  // We need to validate that per file base
+
+
+                                if (Object.keys(files_different).length > 0) {
+                                    console.log('You have mande changes to the following files.');
+                                    for (var key in files_different) { console.log(" - "+key) }
+                                    console.log('Do you want to overwrite your changes?');
                                     resolve();
-                                });
-                            }, function (err) {
-                                console.log('Error here', err);
-                                fileHelper.saveFiles(files_to_save).then(function () {
-                                    syncDataHelper.saveData(sync_data);  // We need to validate that per file base
-                                    resolve();
-                                });
+                                } else {
+                                    fileHelper.saveFiles(files_to_save).then(function () {
+                                        syncDataHelper.saveData(sync_data);  // We need to validate that per file base
+                                        resolve();
+                                    });
+                                }
                             });
 
                         });
@@ -172,9 +151,6 @@ module.exports = function (grunt) {
                     })
                 }
             });
-        }, function (err) {
-            console.log("Problem loading sync data.");
         });
-
     });
 };

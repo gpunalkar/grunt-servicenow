@@ -26,7 +26,6 @@ module.exports = function () {
                         } else {
                             if (data.length === 0) {
                                 data = "{}";
-                                return reject()
                             }
                             fulfill(JSON.parse(data));
                         }
