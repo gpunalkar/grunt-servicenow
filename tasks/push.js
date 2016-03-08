@@ -206,8 +206,6 @@ module.exports = function (grunt) {
                                                     if (sameHash) {
                                                         console.log('File ' + file_obj.name + ' hasnt changed', record_path);
                                                         filesToSave[record_path] = file_obj.content;
-                                                        sync_data_update[record_path] = sync_data[record_path];
-                                                        sync_data_update[record_path].hash = hash.hashContent(file_obj.content);
                                                     } else {
                                                         console.log('File ' + file_obj.name + ' changed');
                                                         filesChanged.push(file_obj);
@@ -227,34 +225,40 @@ module.exports = function (grunt) {
                                         promiseList = [];
 
                                         var fileObj,
-                                            payload;
-                                        for (var path in filesToSave) {
-                                            fileObj = {};
-                                            payload = {};
+                                            payload,
+                                            servicePromise;
+                                        (function () {
+                                            for (var path in filesToSave) {
+                                                payload = {};
+                                                payload[config.folders[folder_name].field] = filesToSave[path];
 
-                                            payload[config.folders[folder_name].field] = filesToSave[path];
+                                                fileObj = {
+                                                    table: config.folders[foldername].table,
+                                                    sys_id: sync_data[path].sys_id,
+                                                    payload: payload
+                                                };
+                                                servicePromise = updateRecord(fileObj);
+                                                servicePromise.then(function () {
+                                                    console.log('success', path);
+                                                    sync_data_update[path] = sync_data[path];
+                                                    sync_data_update[path].hash = hash.hashContent(filesToSave[path]);
 
-                                            fileObj = {
-                                                table: config.folders[foldername].table,
-                                                sys_id : sync_data[path].sys_id,
-                                                postObj : payload,
-                                            };
-                                            promiseList.push(updateRecord(fileObj));
-                                        }
+                                                }, function (e) {
+                                                    console.log('ERROR', e);
+                                                });
+                                                promiseList.push(servicePromise);
+                                            }
+                                        })();
+
 
                                         // Done updating records
                                         Promise.all(promiseList).then(function () {
-                                            resolve();
-                                            console.log('done pushing')
+                                            console.log('done pushing');
+                                            sync_data = util.mergeObject(sync_data_update, sync_data);
+                                            syncDataHelper.saveData(sync_data).then(function () {
+                                                resolve();
+                                            });
                                         });
-                                        //sevicenowpush
-                                        // Push doesn't save files, it PUSHES!
-                                        //fileHelper.saveFiles(filesToSave).then(function () {
-                                        //util.mergeObject(sync_data_update, sync_data);
-                                        //syncDataHelper.saveData(sync_data).then(function () {
-                                        //    resolve();
-                                        //});
-                                        //});
                                     });
 
                                 });
