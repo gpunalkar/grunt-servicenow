@@ -1,6 +1,5 @@
 var path = require('path'),
     fs = require('fs-extra'),
-    glob = require('glob'),
     current_path = process.cwd(),
     DESTINATION = require('../config/constant').DESTINATION;
 
@@ -10,7 +9,7 @@ module.exports = function () {
     var readDir = function (dir_path) {
         var all_files = [];
         return new Promise(function (resolve, reject) {
-            glob(dir_path, function (err, files) {
+            fs.readdir(dir_path, function (err, files) {
                 if (err) {
                     console.error("Error reading folder " + files, err);
                     return reject(err)
