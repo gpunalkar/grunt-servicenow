@@ -8,7 +8,7 @@ var fs = require('fs'),
     fileHelper = require("../helper/file_helper"),
     HashHelper = require('../helper/hash'),
     syncDataHelper = require('../helper/sync_data_validator'),
-    constant = require('../config/constant');
+    DESTINATION = require('../config/constant').DESTINATION;
 
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folder_name, file_name) {
@@ -74,7 +74,7 @@ module.exports = function (grunt) {
                                     if ('extension' in config.folders[folder_name]) {
                                         file_path = file_path + "." + config.folders[folder_name].extension;
                                     }
-                                    var dest = path.join(constant.DESTINATION, file_path);
+                                    var dest = path.join(DESTINATION, file_path);
 
                                     hashComparePromise = hash.compareHash(dest);
                                     hashComparePromises.push(hashComparePromise);

@@ -1,7 +1,9 @@
-var syncDataHelper = require('../helper/sync_data_validator'),
-    fs = require('fs'),
+var fs = require('fs'),
     crypto = require('crypto'),
-    path = require('path');
+    path = require('path'),
+    syncDataHelper = require('../helper/sync_data_validator'),
+    ServiceNow = require('../services/snclient');
+
 
 module.exports = function (sync_data) {
 
@@ -48,6 +50,55 @@ module.exports = function (sync_data) {
                 }
             });
         });
+    };
+
+    this.compareHashRemote = function (file_path, foldername, config) {
+        var that = this;
+
+        return new Promise(function (fulfill, reject) {
+
+            var snService = new ServiceNow(config).setup(),
+                folder_config = config.folders[foldername],
+                filenameWithExtension = path.basename(file_path),
+                filename = path.basename(filenameWithExtension, path.extname(filenameWithExtension));
+
+            var obj = {
+                table: folder_config.table,
+                query: folder_config.key + "=" + filename
+            };
+
+            snService.getRecords(obj, function (err, obj) {
+                if (err) {
+                    reject(err);
+                }
+
+                var result,
+                    hash_comparison;
+
+                if (obj.result.length > 0) {
+                    result = obj.result[0];
+                    livecontentHash = that.hashContent(result[folder_config.field]);
+
+                    if (!(file_path in sync_data)) {
+                        // Use a logger
+                        console.log("Hash doesn't exist, creating one.");
+                        hash_comparison = 0;
+                    } else {
+                        hash_comparison = sync_data[file_path].hash.localeCompare(livecontentHash)
+                    }
+
+                    if (hash_comparison == 0) {
+                        fulfill(true);
+                    } else {
+                        fulfill(false);
+                    }
+                } else {
+                    //create a new file
+                    fulfill(true);
+                }
+            });
+        });
+
     };
 
     return this;

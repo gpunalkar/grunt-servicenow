@@ -1,35 +1,37 @@
 var path = require('path'),
-	fs = require('fs-extra'),
-	glob = require('glob');
+    fs = require('fs-extra'),
+    current_path = process.cwd(),
+    DESTINATION = require('../config/constant').DESTINATION;
+
 
 module.exports = function () {
 
-    var readDir = function (dir_path,prefix) {
+    var readDir = function (dir_path) {
         var all_files = [];
         return new Promise(function (resolve, reject) {
-			if(prefix){
-				dir_path = path.join(dir_path, prefix);
-			}
-			glob(dir_path, function (err, files) {
+            fs.readdir(dir_path, function (err, files) {
                 if (err) {
                     console.error("Error reading folder " + files, err);
-                    reject(err)
+                    return reject(err)
                 }
-				var num_of_files = files.length;
+                var promisesCreated = [];
 
-                var num_of_files_loaded = 0;
+                var currentPromise;
                 files.forEach(function (file_name) {
-                    fs.readFile(file_name, "utf-8", function (err, data) {
-                        num_of_files_loaded++;
-                        all_files.push({
-							name : path.basename(file_name),
-							content : data
-						});
 
-                        if (num_of_files_loaded >= num_of_files) {
-                            resolve(all_files);
-                        }
-                    });
+                    promisesCreated.push(new Promise(function (resolve, reject) {
+                        fs.readFile(path.join(dir_path, file_name), "utf-8", function (err, data) {
+                            all_files.push({
+                                name: path.basename(file_name),
+                                content: data
+                            });
+                            resolve();
+                        });
+                    }));
+
+                });
+                Promise.all(promisesCreated).then(function () {
+                    resolve(all_files);
                 });
 
             });
@@ -37,20 +39,20 @@ module.exports = function () {
     };
 
     var readFile = function (file_path) {
-		var all_files = [];
+        var all_files = [];
         return new Promise(function (resolve, reject) {
-			fs.readFile(file_path, "utf-8", function (err, data) {
+            fs.readFile(file_path, "utf-8", function (err, data) {
                 if (err) {
                     return reject()
                 }
 //                num_of_files_loaded++;
                 all_files.push({
-					name : path.basename(file_path),
-					content : data
-				});
+                    name: path.basename(file_path),
+                    content: data
+                });
 
 //                if (num_of_files_loaded >= num_of_files) {
-				resolve(all_files);
+                resolve(all_files);
 //                }
             });
         });
@@ -73,7 +75,7 @@ module.exports = function () {
         );
 
     };
-    
+
 
     /**
      *
@@ -103,18 +105,26 @@ module.exports = function () {
      * @param files_path - This should be a path to a directory
      * @returns {*}
      */
-    this.readFiles = function (files_path,prefix) {
-		return new Promise(function (resolve, reject) {
-            fs.lstat(files_path, function (err, stats) {
-                if (stats.isDirectory()) {
-                    readDir(files_path,prefix).then(resolve,reject);
-                } else {
+    this.readFiles = function (folder, filename) {
+        files_path = path.join(current_path, DESTINATION, folder);
 
-                    readFile(files_path).then(resolve,reject);
+        if (filename) {
+            files_path = path.join(files_path, filename)
+        }
+        return new Promise(function (resolve, reject) {
+            fs.lstat(files_path, function (err, stats) {
+                if (err) {
+                    return reject(err);
+                }
+
+                if (stats.isDirectory()) {
+                    readDir(files_path).then(resolve, reject);
+                } else {
+                    readFile(files_path).then(resolve, reject);
                 }
             })
         });
     };
 
-	return this;
+    return this;
 }();
