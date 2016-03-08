@@ -250,9 +250,6 @@ module.exports = function (grunt) {
                     }
                 });
             }
-        )
-        ;
-    })
-    ;
-}
-;
+        );
+    });
+};
