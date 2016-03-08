@@ -144,93 +144,115 @@ module.exports = function (grunt) {
         }
 
         syncDataHelper.loadData().then(function (sync_data) {
-            require_config().then(function (config) {
-                var hash = HashHelper(sync_data);
-                var snService = new ServiceNow(config).setup();
+                require_config().then(function (config) {
+                    var hash = HashHelper(sync_data);
+                    var snService = new ServiceNow(config).setup();
 
-                var askQuestions = function () {
-                    return new Promise(function (resolve, reject) {
-                        var questions = [
-                            {
-                                type: "checkbox",
-                                name: "folders",
-                                message: "What folders do you want to push to your instance?",
-                                choices: Object.keys(config.folders)
-                            },
-                            {
-                                type: "confirm",
-                                name: "no_query",
-                                message: "Do you want to push all files for the selected folders?"
-                            },
-                            {
-                                type: "input",
-                                name: "filename",
-                                message: "Please enter a search term to use for finding files",
-                                when: function (answers) {
-                                    return (answers.no_query) ? false : true;
+                    var askQuestions = function () {
+                        return new Promise(function (resolve, reject) {
+                            var questions = [
+                                {
+                                    type: "checkbox",
+                                    name: "folders",
+                                    message: "What folders do you want to push to your instance?",
+                                    choices: Object.keys(config.folders)
+                                },
+                                {
+                                    type: "confirm",
+                                    name: "no_query",
+                                    message: "Do you want to push all files for the selected folders?"
+                                },
+                                {
+                                    type: "input",
+                                    name: "filename",
+                                    message: "Please enter a search term to use for finding files",
+                                    when: function (answers) {
+                                        return (answers.no_query) ? false : true;
+                                    }
+
                                 }
-
-                            }
-                        ];
-                        inquirer.prompt(questions, function (answers) {
-                            resolve(answers);
-                        });
-
-                    });
-                };
-
-                var pushRecords = function (foldername, filename) {
-                    return new Promise(function (resolve, reject) {
-                        if (filename) {
-                            if (config.folders[folder_name].extension) {
-                                filename = filename + "." + config.folders[foldername].extension;
-                            }
-                        }
-
-                        fileHelper.readFiles(foldername, filename).then(function (all_files) {
-                            var record_path;
-
-                            var files_changed,
-                                files_didnt_change,
-                                promiseList;
-
-                            all_files.forEach(function (file_obj) {
-                                (function () {
-                                    record_path = path.join(DESTINATION, foldername, file_obj.name);
-                                    hash.compareHashRemote(record_path, foldername, config).then(function (sameHash) {
-                                        if (sameHash)
-                                            console.log('File ' + file_obj.name + ' hasnt changed');
-                                        else
-                                            console.log('File ' + file_obj.name + ' changed');
-                                    });
-                                })();
+                            ];
+                            inquirer.prompt(questions, function (answers) {
+                                resolve(answers);
                             });
 
                         });
-                    });
-                };
+                    };
 
-                if (!folder_name && !file_name) {
-                    askQuestions().then(function (answers) {
-                        var promises = [];
-                        answers.folders.forEach(function (folder) {
-                            promises.push(pushRecords(folder, answers.filename));
+                    var pushRecords = function (foldername, filename) {
+                        return new Promise(function (resolve, reject) {
+                                if (filename) {
+                                    if (config.folders[folder_name].extension) {
+                                        filename = filename + "." + config.folders[foldername].extension;
+                                    }
+                                }
+
+                                fileHelper.readFiles(foldername, filename).then(function (all_files) {
+                                    var record_path;
+
+                                    var filesChanged = [],
+                                        filesDidntChange = [],
+                                        newFiles = [],
+                                        promiseList = [],
+                                        currentPromise;
+
+                                    all_files.forEach(function (file_obj) {
+                                        (function () {
+                                            record_path = path.join(DESTINATION, foldername, file_obj.name);
+                                            if (record_path in sync_data) {
+                                                currentPromise = hash.compareHashRemote(record_path, foldername, config);
+                                                currentPromise.then(function (sameHash) {
+                                                    if (sameHash) {
+                                                        console.log('File ' + file_obj.name + ' hasnt changed');
+                                                        filesDidntChange.push(file_obj);
+                                                    } else {
+                                                        console.log('File ' + file_obj.name + ' changed');
+                                                        filesChanged.push(file_obj);
+
+                                                    }
+                                                });
+                                                promiseList.push(currentPromise);
+                                            } else {
+                                                console.log('No local record for file ' + file_obj.name);
+                                                newFiles.push(file_obj);
+                                            }
+                                        })();
+                                    });
+
+                                    Promise.all(promiseList).then(function () {
+                                        console.log('All files compared');
+                                    });
+
+                                });
+                            }
+                        );
+                    };
+
+                    if (!folder_name && !file_name) {
+                        askQuestions().then(function (answers) {
+                            var promises = [];
+                            answers.folders.forEach(function (folder) {
+                                promises.push(pushRecords(folder, answers.filename));
+                            });
+
+                            Promise.all(promises).then(function () {
+                                //askToCreateNewFiles();
+                                done();
+                            });
                         });
 
-                        Promise.all(promises).then(function () {
-                            //askToCreateNewFiles();
+                    } else {
+                        pushRecords(folder_name, file_name).then(function () {
+                            //askToCreateNewFiles().then(function () {
                             done();
+                            //})
                         });
-                    });
-
-                } else {
-                    pushRecords(folder_name, file_name).then(function () {
-                        //askToCreateNewFiles().then(function () {
-                        done();
-                        //})
-                    });
-                }
-            });
-        });
-    });
-};
+                    }
+                });
+            }
+        )
+        ;
+    })
+    ;
+}
+;
