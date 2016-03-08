@@ -1,7 +1,9 @@
-var syncDataHelper = require('../helper/sync_data_validator'),
-    fs = require('fs'),
+var fs = require('fs'),
     crypto = require('crypto'),
-    path = require('path');
+    path = require('path'),
+    syncDataHelper = require('../helper/sync_data_validator'),
+    ServiceNow = require('../services/snclient');
+
 
 module.exports = function (sync_data) {
 
@@ -48,6 +50,11 @@ module.exports = function (sync_data) {
                 }
             });
         });
+    };
+
+    this.compareHashRemote = function (file_path, foldername, config) {
+        var snService = new ServiceNow(config).setup();
+        var folder_config = config.folders[file_path]
     };
 
     return this;

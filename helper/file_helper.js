@@ -23,8 +23,7 @@ module.exports = function () {
                         fs.readFile(path.join(dir_path, file_name), "utf-8", function (err, data) {
                             all_files.push({
                                 name: path.basename(file_name),
-                                content: data,
-                                relative_path: path.join(dir_path.replace(current_path + "/", ""), file_name)
+                                content: data
                             });
                             resolve();
                         });
@@ -107,7 +106,7 @@ module.exports = function () {
      * @returns {*}
      */
     this.readFiles = function (folder, filename) {
-        files_path = path.join(path.join(current_path, DESTINATION), folder);
+        files_path = path.join(current_path, DESTINATION, folder);
 
         if (filename) {
             files_path = path.join(files_path, filename)

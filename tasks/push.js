@@ -7,12 +7,13 @@ var fs = require('fs'),
     fileHelper = require("../helper/file_helper"),
     HashHelper = require('../helper/hash'),
     syncDataHelper = require('../helper/sync_data_validator'),
-    constant = require('../config/constant');
+    DESTINATION = require('../config/constant').DESTINATION;
 
 
 module.exports = function (grunt) {
     grunt.registerTask('push', 'Push command.', function (folder_name, file_name) {
         var done = this.async();
+        var force = false;
 
         var updateRecord = function (parms) {
             return new Promise(function (resolve, reject) {
@@ -180,59 +181,23 @@ module.exports = function (grunt) {
 
                 var pushRecords = function (foldername, filename) {
                     return new Promise(function (resolve, reject) {
-                        //var config_folder = config.folders[foldername];
                         if (filename) {
                             if (config.folders[folder_name].extension) {
-                                filename = filename + "." + config.folders[folder_name].extension;
+                                filename = filename + "." + config.folders[foldername].extension;
                             }
                         }
 
-                        var files = fileHelper.readFiles(foldername, filename);
+                        fileHelper.readFiles(foldername, filename).then(function (all_files) {
+                            var record_path;
 
-                        files.then(function (all_files) {
-                            var count = 0;
-                            var num_records = all_files.length;
+                            var files_changed,
+                                files_didnt_change,
+                                promiseList;
 
-                            for (var i = 0; i < all_files.length; i++) {
-
-                                (function (index) {
-                                    var record_name = path.basename(all_files[i].name),
-                                        payload = {},
-                                        record_path = path.join(destination, folder_name, record_name);
-
-//									 check if sync_data doesn't exists for file
-                                    if (!sync_data[record_path]) {
-                                        new_files.push({
-                                            folder_name: folder_name,
-                                            file_name: record_path,
-                                            content: all_files[i].content
-
-                                        });
-                                        count++;
-                                        if (count === num_records) {
-                                            resolve();
-                                        }
-                                    }
-
-                                    else {
-                                        payload[config.folders[folder_name].field] = all_files[i].content;
-                                        var parms = {
-                                            table: config.folders[folder_name].table,
-                                            sys_id: sync_data[record_path].sys_id,
-                                            payload: payload
-                                        };
-
-                                        updateRecord(parms).then(function () {
-                                            count++;
-                                            if (count === num_records) {
-                                                resolve();
-                                            }
-                                        })
-
-
-                                    }
-                                })(i);
-                            }
+                            all_files.forEach(function (file_obj) {
+                                record_path = path.join(DESTINATION, folder_name, file_obj.name);
+                                hash.compareHashRemote(record_path, foldername , config);
+                            });
 
                         });
                     });
