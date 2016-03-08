@@ -8,7 +8,7 @@ var fs = require('fs'),
     fileHelper = require("../helper/file_helper"),
     HashHelper = require('../helper/hash'),
     syncDataHelper = require('../helper/sync_data_validator'),
-    DESTINATION = 'dist';
+    constant = require('../config/constant');
 
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folder_name, file_name) {
@@ -16,7 +16,7 @@ module.exports = function (grunt) {
         syncDataHelper.loadData().then(function (sync_data) {
             require_config().then(function (config) {
                 var hash = HashHelper(sync_data);
-                var snService = new ServiceNow(config);
+                var snService = new ServiceNow(config).setup();
 
                 var askQuestions = function () {
                     return new Promise(function (resolve, reject) {
@@ -56,7 +56,7 @@ module.exports = function (grunt) {
                             query: config.folders[folder_name].key + operator + file_name
                         };
 
-                        snService.setup().getRecords(obj, function (err, obj) {
+                        snService.getRecords(obj, function (err, obj) {
                             var files_to_save = {},
                                 files_different = {},
                                 sync_data_different = {},
@@ -74,7 +74,7 @@ module.exports = function (grunt) {
                                     if ('extension' in config.folders[folder_name]) {
                                         file_path = file_path + "." + config.folders[folder_name].extension;
                                     }
-                                    var dest = path.join(DESTINATION, file_path);
+                                    var dest = path.join(constant.DESTINATION, file_path);
 
                                     hashComparePromise = hash.compareHash(dest);
                                     hashComparePromises.push(hashComparePromise);

@@ -2,12 +2,13 @@
 var fs = require('fs'),
 	path = require('path'),
 	inquirer = require('inquirer'),
-
 	ServiceNow = require('../services/snclient'),
 	require_config = require("../helper/config_validator"),
 	fileHelper = require("../helper/file_helper"),
 	HashHelper = require('../helper/hash'),
-    syncDataHelper = require('../helper/sync_data_validator');
+    syncDataHelper = require('../helper/sync_data_validator'),
+	constant = require('../config/constant');
+
 
 
 
@@ -15,13 +16,7 @@ var fs = require('fs'),
 
 module.exports = function (grunt) {
     grunt.registerTask('push', 'Push command.', function (folder_name, file_name) {
-		var _config = {},
-			done = this.async(),
-			new_files = [],
-			_sync_data = [],
-			hash = [],
-			snHelper = {};
-
+		var done = this.async();
 		var prompt = function(){
 			return new Promise(function(resolve,reject){
 				var questions = [
@@ -56,7 +51,7 @@ module.exports = function (grunt) {
 
 		var updateRecord = function(parms){
 			return new Promise(function(resolve,reject){
-				snHelper.updateRecord(parms,function(err,obj){
+				snService.updateRecord(parms,function(err,obj){
 					if(err){
 						console.error("Error on updateRecord: ", err)
 						reject(err);
@@ -80,7 +75,7 @@ module.exports = function (grunt) {
 					query : getQuery
 				};
 				console.log(getQuery);
-				snHelper.getRecords(queryObj,function(err,obj){
+				snService.getRecords(queryObj,function(err,obj){
 					if(err){
 						console.log("Error getting records: ", err);
 						reject(err);
@@ -116,7 +111,7 @@ module.exports = function (grunt) {
 							payload : payload
 						};
 
-						snHelper.createRecord(postObj,function(err, result){
+						snService.createRecord(postObj,function(err, result){
 							counter++;
 							updateSyncData(records[index].file_name,result,records[index].field)
 
@@ -182,12 +177,9 @@ module.exports = function (grunt) {
 		}
 
 		syncDataHelper.loadData().then(function (sync_data) {
-			_sync_data = sync_data;
 			require_config().then(function (config) {
-				_config = config;
-				hash = HashHelper(sync_data);
-
-				snHelper = new ServiceNow(config).setup()
+				var hash = HashHelper(sync_data);
+				var snService = new ServiceNow(config).setup();
 
 				var pushRecords = function(folder_name){
 					return new Promise(function(resolve, reject){
