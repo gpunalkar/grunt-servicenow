@@ -1,9 +1,13 @@
 # ServiceNow Grunt Tasks
-Grunt task used to work with servicenow instance 
+Grunt tasks used to work with pushing and pullin records to a ServiceNow instance
 
 ### Installation
 
 You need Grunt CLI installed globally:
+```sh
+$ npm install -g grunt-cli
+```
+
 ```sh
 $ npm install grunt-servicenow --save-dev
 ```
@@ -20,7 +24,7 @@ This sets up the configuration file with a hash of your instance credentials, in
 ```sh
 $ grunt init
 ```
-![grunt init](images/gruntInitTask.gif "Animation that shows init task")
+![grunt init](https://raw.githubusercontent.com/arthuroliveira/grunt-servicenow/develop/images/gruntinitTask.gif "Animation that shows init task")
 
 **This is a mandatory tasks to run for all instance related tasks.**
 ## watchAndPush <a name="watchAndPush"></a>
