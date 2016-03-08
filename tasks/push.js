@@ -195,8 +195,15 @@ module.exports = function (grunt) {
                                 promiseList;
 
                             all_files.forEach(function (file_obj) {
-                                record_path = path.join(DESTINATION, folder_name, file_obj.name);
-                                hash.compareHashRemote(record_path, foldername , config);
+                                (function () {
+                                    record_path = path.join(DESTINATION, foldername, file_obj.name);
+                                    hash.compareHashRemote(record_path, foldername, config).then(function (sameHash) {
+                                        if (sameHash)
+                                            console.log('File ' + file_obj.name + ' hasnt changed');
+                                        else
+                                            console.log('File ' + file_obj.name + ' changed');
+                                    });
+                                })();
                             });
 
                         });
@@ -204,7 +211,6 @@ module.exports = function (grunt) {
                 };
 
                 if (!folder_name && !file_name) {
-
                     askQuestions().then(function (answers) {
                         var promises = [];
                         answers.folders.forEach(function (folder) {
