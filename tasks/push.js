@@ -163,7 +163,7 @@ module.exports = function (grunt) {
                             },
                             {
                                 type: "input",
-                                name: "prefix",
+                                name: "filename",
                                 message: "Please enter a search term to use for finding files",
                                 when: function (answers) {
                                     return (answers.no_query) ? false : true;
@@ -180,34 +180,14 @@ module.exports = function (grunt) {
 
                 var pushRecords = function (foldername, filename) {
                     return new Promise(function (resolve, reject) {
-                        var destination = path.join(process.cwd(), grunt.config("destination")),
-                            full_name = path.join(destination, folder_name),
-                            prefix = "",
-                            config_folder = config.folders[folder_name];
-
-
-                        if (file_name) {
-                            file_name = config.project_prefix + file_name;
-                            full_name = path.join(full_name, file_name);
+                        //var config_folder = config.folders[foldername];
+                        if (filename) {
                             if (config.folders[folder_name].extension) {
-
-                                full_name = full_name + "." + config.folders[folder_name].extension;
+                                filename = filename + "." + config.folders[folder_name].extension;
                             }
                         }
-                        else if (grunt.config("push_prefix")) {
-                            prefix = grunt.config("push_prefix") + "*";
 
-                            if (config_folder.extension) {
-
-                                prefix = prefix + "." + config_folder.extension;
-                            }
-                        }
-                        else {
-                            prefix = config.project_prefix + "*";
-                        }
-
-                        var files = fileHelper.readFiles(full_name, prefix);
-
+                        var files = fileHelper.readFiles(foldername, filename);
 
                         files.then(function (all_files) {
                             var count = 0;
@@ -256,16 +236,14 @@ module.exports = function (grunt) {
 
                         });
                     });
-
                 };
 
                 if (!folder_name && !file_name) {
 
                     askQuestions().then(function (answers) {
-                        //answers.prefix
                         var promises = [];
                         answers.folders.forEach(function (folder) {
-                            promises.push(pushRecords(folder));
+                            promises.push(pushRecords(folder, answers.filename));
                         });
 
                         Promise.all(promises).then(function () {
