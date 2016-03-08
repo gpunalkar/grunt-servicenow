@@ -16,17 +16,23 @@ module.exports = function () {
                 }
                 var promisesCreated = [];
 
+                var currentPromise;
                 files.forEach(function (file_name) {
-                    promisesCreated.push(fs.readFile(file_name, "utf-8", function (err, data) {
-                        all_files.push({
-                            name: path.basename(file_name),
-                            content: data
+
+                    promisesCreated.push(new Promise(function (resolve, reject) {
+                        fs.readFile(path.join(dir_path, file_name), "utf-8", function (err, data) {
+                            all_files.push({
+                                name: path.basename(file_name),
+                                content: data,
+                                relative_path: path.join(dir_path.replace(current_path + "/", ""), file_name)
+                            });
+                            resolve();
                         });
                     }));
 
-                    Promise.all(promisesCreated).then(function(){
-                        resolve(all_files);
-                    });
+                });
+                Promise.all(promisesCreated).then(function () {
+                    resolve(all_files);
                 });
 
             });
