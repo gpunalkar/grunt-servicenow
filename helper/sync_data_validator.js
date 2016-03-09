@@ -23,6 +23,7 @@ module.exports = function () {
                     fs.readFile(sync_data_path, 'utf8', function (err, data) {
                         if (err) {
                             console.log(err)
+                            reject();
                         } else {
                             if (data.length === 0) {
                                 data = "{}";
@@ -43,7 +44,7 @@ module.exports = function () {
                     return console.log(err);
                     reject();
                 }
-                console.log("The sync file was saved!");
+                //console.log("The sync file was saved!", sync_data);
                 fulfill();
             });
         });

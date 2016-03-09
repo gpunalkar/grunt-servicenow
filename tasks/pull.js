@@ -101,8 +101,6 @@ module.exports = function (grunt) {
                                 })();
                             });
                             Promise.all(hashComparePromises).then(function () {
-                                console.log('Hash compare all');
-
 
                                 if (Object.keys(files_different).length > 0) {
                                     console.log('You have mande changes to the following files.');
@@ -124,14 +122,16 @@ module.exports = function (grunt) {
                                             sync_data = util.mergeObject(sync_data, sync_data_different);
                                         }
                                         fileHelper.saveFiles(files_to_save).then(function () {
-                                            syncDataHelper.saveData(sync_data);  // We need to validate that per file base
-                                            resolve();
+                                            syncDataHelper.saveData(sync_data).then(function () {
+                                                resolve();
+                                            });
                                         });
                                     });
                                 } else {
                                     fileHelper.saveFiles(files_to_save).then(function () {
-                                        syncDataHelper.saveData(sync_data);  // We need to validate that per file base
-                                        resolve();
+                                        syncDataHelper.saveData(sync_data).then(function () {
+                                            resolve();
+                                        });
                                     });
                                 }
                             });
@@ -149,7 +149,6 @@ module.exports = function (grunt) {
                         });
 
                         Promise.all(promises).then(function () {
-                            console.log('All promises done!');
                             done();
                         });
                     });
