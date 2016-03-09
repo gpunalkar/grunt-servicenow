@@ -106,7 +106,7 @@ module.exports = function () {
      * @returns {*}
      */
     this.readFiles = function (folder, filename) {
-        files_path = path.join(current_path, DESTINATION, folder);
+        var files_path = path.join(current_path, DESTINATION, folder);
 
         if (filename) {
             files_path = path.join(files_path, filename)
