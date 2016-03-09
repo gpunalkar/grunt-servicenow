@@ -142,6 +142,8 @@ module.exports = function (grunt) {
                                 });
                             });
 
+                        }, function(){
+                            resolve();
                         });
                     });
                 };
@@ -155,6 +157,7 @@ module.exports = function (grunt) {
 
                         Promise.all(promises).then(function () {
                             syncDataHelper.saveData(sync_data).then(function () {
+                                console.log('done');
                                 done();
                             });
                         });
@@ -163,6 +166,7 @@ module.exports = function (grunt) {
                 } else {
                     pushRecords(folder_name, file_name).then(function () {
                         syncDataHelper.saveData(sync_data).then(function () {
+                            console.log('Completed');
                             done();
                         });
                     });
