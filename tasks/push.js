@@ -112,7 +112,7 @@ module.exports = function (grunt) {
                                         });
                                         promiseList.push(currentPromise);
                                     } else {
-                                        console.log('No local record for file ', record_path);
+                                        //console.log('No local record for file ', record_path);
                                         newFiles[record_path] = file_obj.content;
                                     }
                                 })();

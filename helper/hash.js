@@ -39,7 +39,7 @@ module.exports = function (sync_data) {
 
                 if (!(file_path in sync_data)) {
                     // Use a logger
-                    console.log("Hash doesn't exist, creating one.", file_path);
+                    //console.log("Hash doesn't exist, creating one.", file_path);
                     hash_comparison = 0;
                 } else {
                     hash_comparison = sync_data[file_path].hash.localeCompare(file_hash)
