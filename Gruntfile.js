@@ -1,5 +1,5 @@
 module.exports = function (grunt) {
-    
+
     //var snConfig = grunt.file.readJSON('.sn-config.json');
     //var watchObj = {};
     //for (key in snConfig.folders) {
@@ -11,7 +11,7 @@ module.exports = function (grunt) {
 
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'), //This allows us to refer to the values of properties within our package.json file. e.g. <%= pkg.name %>
-        watch: watchObj
+        //watch: watchObj
     });
 
     grunt.loadNpmTasks('grunt-servicenow');
