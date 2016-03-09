@@ -160,6 +160,8 @@ module.exports = restler.service(
 			}
 			
 			function updateRecord(obj, callback) {
+				//hack for ui_page
+				obj.payload['direct'] = true;
 				var parms = {
 					table: obj.table,
 					sys_id : obj.sys_id,

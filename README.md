@@ -24,7 +24,7 @@ This sets up the configuration file with a hash of your instance credentials, in
 ```sh
 $ grunt init
 ```
-![grunt init](https://raw.githubusercontent.com/arthuroliveira/grunt-servicenow/develop/images/gruntinitTask.gif "Animation that shows init task")
+![grunt init](https://raw.githubusercontent.com/arthuroliveira/grunt-servicenow/develop/docs/images/gruntInitTask.gif "Animation that shows init task")
 
 **This is a mandatory tasks to run for all instance related tasks.**
 ## watchAndPush <a name="watchAndPush"></a>

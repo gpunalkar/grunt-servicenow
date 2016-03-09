@@ -1,310 +1,210 @@
 'use strict';
 var fs = require('fs'),
-	path = require('path'),
-	inquirer = require('inquirer'),
-
-	ServiceNow = require('../services/snclient'),
-	require_config = require("../helper/config_validator"),
-	fileHelper = require("../helper/file_helper"),
-	HashHelper = require('../helper/hash'),
-    syncDataHelper = require('../helper/sync_data_validator');
-
-
-
+    path = require('path'),
+    inquirer = require('inquirer'),
+    ServiceNow = require('../services/snclient'),
+    require_config = require("../helper/config_validator"),
+    fileHelper = require("../helper/file_helper"),
+    HashHelper = require('../helper/hash'),
+    util = require('../helper/util'),
+    syncDataHelper = require('../helper/sync_data_validator'),
+    DESTINATION = require('../config/constant').DESTINATION;
 
 
 module.exports = function (grunt) {
     grunt.registerTask('push', 'Push command.', function (folder_name, file_name) {
-		var _config = {},
-			done = this.async(),
-			new_files = [],
-			_sync_data = [],
-			hash = [],
-			snHelper = {};
+        var done = this.async();
+        var insert_new_files = grunt.option('new') || grunt.config('new');
+        var force_update = grunt.option('force') || grunt.config('force');
 
-		var prompt = function(){
-			return new Promise(function(resolve,reject){
-				var questions = [
-					{
-						type: "checkbox",
-						name: "folders",
-						message: "What folders do you want to push to your instance?",
-						choices : Object.keys(_config.folders)
-					},
-					{
-						type: "confirm",
-						name: "no_query",
-						message: "Do you want to push all files for the selected folders?"
-					},
-					{
-						type: "input",
-						name: "prefix",
-						message: "Please enter a search term to use for finding files",
-						when : function (answers){
-							return (answers.no_query) ? false : true;
-						}
+        syncDataHelper.loadData().then(function (sync_data) {
+            require_config().then(function (config) {
+                var hash = HashHelper(sync_data);
+                var snService = new ServiceNow(config).setup();
 
-					}
-				];
-				inquirer.prompt(questions, function (answers) {
-					resolve(answers);
-				});
+                var updateRecord = function (parms) {
+                    return new Promise(function (resolve, reject) {
+                        snService.updateRecord(parms, function (err, obj) {
+                            if (err) {
+                                console.error("Error on updateRecord: ", err)
+                                reject(err);
+                            }
+                            else {
+                                resolve();
+                            }
+                        });
+                    });
+                };
 
-			});
+                var insertRecord = function (params, file_path, content) {
+                    return new Promise(function (resolve, reject) {
+                        snService.createRecord(params, function (err, result) {
+                            sync_data[file_path] = {
+                                sys_id: result.result.sys_id,
+                                sys_updated_on: result.result.sys_updated_on,
+                                sys_updated_by: result.result.sys_updated_by,
+                                hash: hash.hashContent(content)
+                            };
+                            resolve();
+                        })
+                    });
+                };
 
-		};
+                var askQuestions = function () {
+                    return new Promise(function (resolve, reject) {
+                        var questions = [
+                            {
+                                type: "checkbox",
+                                name: "folders",
+                                message: "What folders do you want to push to your instance?",
+                                choices: Object.keys(config.folders)
+                            },
+                            {
+                                type: "confirm",
+                                name: "no_query",
+                                message: "Do you want to push all files for the selected folders?"
+                            },
+                            {
+                                type: "input",
+                                name: "filename",
+                                message: "Please enter a search term to use for finding files",
+                                when: function (answers) {
+                                    return (answers.no_query) ? false : true;
+                                }
 
-		var updateRecord = function(parms){
-			return new Promise(function(resolve,reject){
-				snHelper.updateRecord(parms,function(err,obj){
-					if(err){
-						console.error("Error on updateRecord: ", err)
-						reject(err);
-					}
-					else{
-						resolve();
-					}
-				});
-			});
-		};
+                            }
+                        ];
+                        inquirer.prompt(questions, function (answers) {
+                            resolve(answers);
+                        });
 
-		var getRecord = function(new_file){
+                    });
+                };
 
-			return new Promise(function(resolve, reject){
-				// check if file is on server
-				var file_name = path.basename(new_files.file_name),
-				config_folder = _config.folders[new_file.folder_name],
-				getQuery =  config_folder.key + "=" + file_name,
-				queryObj = {
-					table : config_folder.table,
-					query : getQuery
-				};
-				console.log(getQuery);
-				snHelper.getRecords(queryObj,function(err,obj){
-					if(err){
-						console.log("Error getting records: ", err);
-						reject(err);
-					}
-					else if(obj.result.length === 0){
+                var pushRecords = function (foldername, filename) {
+                    return new Promise(function (resolve, reject) {
+                        if (filename) {
+                            if (config.folders[folder_name].extension) {
+                                filename = filename + "." + config.folders[foldername].extension;
+                            }
+                        }
 
-						new_file.table = config_folder.table;
-						new_file.key = config_folder.key;
-						new_file.field = config_folder.field;
-						new_file.extension = config_folder.extension;
+                        fileHelper.readFiles(foldername, filename).then(function (all_files) {
+                            var filesChanged = [],
+                                filesToSave = {},
+                                newFiles = {},
+                                promiseList = [],
+                                currentPromise;
 
-						resolve(new_file);
-					}
-					else{
-						console.log("record exists");
-					}
+                            all_files.forEach(function (file_obj) {
+                                (function () {
+                                    var record_path = path.join(DESTINATION, foldername, file_obj.name);
+                                    if (record_path in sync_data) {
+                                        currentPromise = hash.compareHashRemote(record_path, foldername, config);
+                                        currentPromise.then(function (sameHash) {
+                                            if (sameHash || force_update) {
+                                                //console.log('File ' + file_obj.name + ' hasnt changed', record_path);
+                                                filesToSave[record_path] = file_obj.content;
+                                            } else {
+                                                console.log('File ' + file_obj.name + ' changed, please pull');
+                                                filesChanged.push(file_obj);
+                                            }
+                                        });
+                                        promiseList.push(currentPromise);
+                                    } else {
+                                        //console.log('No local record for file ', record_path);
+                                        newFiles[record_path] = file_obj.content;
+                                    }
+                                })();
+                            });
 
-				});
-			})
-		};
+                            // Done comparing the hashes
+                            Promise.all(promiseList).then(function () {
+                                promiseList = [];
+                                var fileObj,
+                                    payload,
+                                    servicePromise;
 
-		var createRecords = function(records){
-			return new Promise(function(resolve, reject){
-				var counter = 0;
-				for(var i = 0; i < records.length; i++){
-					(function(index){
-						var payload = {};
-						payload[records[index].key] = path.basename(records[index].file_name,"." + records[i].extension);
-						payload[records[index].field] = records[index].content;
-						payload['direct'] = true;
-						var postObj = {
-							table : records[index].table,
-							payload : payload
-						};
-
-						snHelper.createRecord(postObj,function(err, result){
-							counter++;
-							updateSyncData(records[index].file_name,result,records[index].field)
-
-							if(counter === records.length){
-								resolve();
-							}
-						})
-
-					}(i));
-
-				}
-			});
-		};
-
-		var askToCreateNewFiles = function() {
-			(function(){
-				return new Promise(function(resolve, reject){
-					var files = [];
-					var counter = 0;
-					for(var i = 0; i < new_files.length; i++){
-
-						(function(index){
-							getRecord(new_files[index]).then(function(new_file){
-								counter++;
-								files.push(new_file);
-								if(counter === new_files.length)
-								{
-									resolve(files);
-								}
-							});
-
-						}(i));
-
-					}
-				});
-			}()).then(function(files){
-
-				inquirer.prompt([{
-					type : "checkbox",
-					name : "records",
-					message : "The following files do not have records on the instance. Select which ones you want to create",
-					choices : files.map(function(d){ return { name : path.basename(d["file_name"]), value : d}}),
-					default : true
-
-				}],function(answers){
-					createRecords(answers.records).then(function(){
-						syncDataHelper.saveData(_sync_data);
-					});
-
-				});
-			});
-		};
-
-		function updateSyncData(record, obj,content_field){
-			var parms = {
-				sys_id: obj.result.sys_id,
-				sys_updated_on: obj.result.sys_created_on,
-				sys_updated_by: obj.result.sys_created_by,
-				hash: hash.hashContent(obj.result[content_field])
-			};
-			_sync_data[record] = parms;
-
-		}
-
-		syncDataHelper.loadData().then(function (sync_data) {
-			_sync_data = sync_data;
-			require_config().then(function (config) {
-				_config = config;
-				hash = HashHelper(sync_data);
-
-				snHelper = new ServiceNow(config).setup()
-
-				var pushRecords = function(folder_name){
-					return new Promise(function(resolve, reject){
-						var destination = path.join(process.cwd(), grunt.config("destination")),
-							full_name = path.join(destination,folder_name),
-							prefix = "",
-							config_folder = config.folders[folder_name];
+                                var insertOrUpdate = function (fileList, path, fileObj, insert, file_path) {
+                                    if (insert) {
+                                        servicePromise = insertRecord(fileObj, file_path, fileList[file_path]);
+                                    } else {
+                                        servicePromise = updateRecord(fileObj);
+                                    }
+                                    servicePromise.then(function () {
+                                        if (!insert)
+                                            sync_data[path]["hash"] = hash.hashContent(fileList[path]);
+                                        console.log('Pushed: ' + path);
+                                    }, function (e) {
+                                        console.log('ERROR', e);
+                                    });
+                                    promiseList.push(servicePromise);
+                                };
 
 
+                                for (var file_path in filesToSave) {
+                                    payload = {};
+                                    payload[config.folders[foldername].field] = filesToSave[file_path];
 
-						if(file_name){
-							file_name = config.project_prefix + file_name;
-							full_name = path.join(full_name,file_name);
-							if(config.folders[folder_name].extension){
+                                    fileObj = {
+                                        table: config.folders[foldername].table,
+                                        sys_id: sync_data[file_path].sys_id,
+                                        payload: payload
+                                    };
 
-								full_name = full_name + "." + config.folders[folder_name].extension;
-							}
-						}
-						else if(grunt.config("push_prefix")){
-							prefix = grunt.config("push_prefix") + "*";
+                                    insertOrUpdate(filesToSave, file_path, fileObj, false);
+                                }
 
-							if(config_folder.extension){
-
-								prefix = prefix + "." + config_folder.extension;
-							}
-						}
-						else{
-							prefix = config.project_prefix + "*";
-						}
-
-						var files = fileHelper.readFiles(full_name,prefix);
-
-
-						files.then(function(all_files){
-							var count = 0;
-							var num_records = all_files.length;
-
-							for(var i = 0; i <all_files.
-								length; i++){
-
-								(function(index){
-									var record_name = path.basename(all_files[i].name),
-										payload = {},
-										record_path = path.join(destination,folder_name,record_name);
-
-//									 check if sync_data doesn't exists for file
-									if(!sync_data[record_path]){
-										new_files.push({
-											folder_name : folder_name,
-											file_name : record_path,
-											content : all_files[i].content
-
-										});
-										count++;
-										if(count === num_records){
-											resolve();
-										}
-									}
-
-									else{
-										payload[config.folders[folder_name].field] = all_files[i].content;
-										payload['direct'] = true;
-										var	parms = {
-											table : config.folders[folder_name].table,
-											sys_id : sync_data[record_path].sys_id,
-											payload : payload
-										};
-
-										updateRecord(parms).then(function(){
-											count++;
-											if(count === num_records)
-											{
-												resolve();
-											}
-										})
+                                if (insert_new_files) {
+                                    for (var file_path in newFiles) {
+                                        payload = {};
+                                        payload[config.folders[foldername].key] = path.basename(file_path).replace(path.extname(file_path), ""); // Get filename without extension
+                                        payload[config.folders[foldername].field] = newFiles[file_path];
+                                        fileObj = {
+                                            table: config.folders[foldername].table,
+                                            payload: payload
+                                        };
+                                        insertOrUpdate(newFiles, file_path, fileObj, true, file_path);
+                                    }
+                                }
 
 
-									}
-								})(i);
-							}
+                                // Done updating records
+                                Promise.all(promiseList).then(function () {
+                                    resolve();
+                                });
+                            });
 
-						});
-					});
+                        }, function () {
+                            resolve();
+                        });
+                    });
+                };
 
-				};
+                if (!folder_name && !file_name) {
+                    askQuestions().then(function (answers) {
+                        var promises = [];
+                        answers.folders.forEach(function (folder) {
+                            promises.push(pushRecords(folder, answers.filename));
+                        });
 
-				if(!folder_name && !file_name){
+                        Promise.all(promises).then(function () {
+                            syncDataHelper.saveData(sync_data).then(function () {
+                                console.log('Completed');
+                                done();
+                            });
+                        });
+                    });
 
-					prompt().then(function (answers) {
-						grunt.config.set("push_prefix",answers.prefix);
-
-						var count = 0;
-						for(var i = 0; i < answers.folders.length; i++){
-							(function(){
-								pushRecords(answers.folders[i]).then(function(){
-									count++;
-									if(count === answers.folders.length){
-										askToCreateNewFiles();
-										done();
-									}
-								});
-							})();
-
-
-						}
-
-					});
-
-				}
-				else{
-					pushRecords(folder_name).then(function(){
-						askToCreateNewFiles().then(function(){
-							done();
-						})
-					});
-				}
-			});
-		});
+                } else {
+                    pushRecords(folder_name, file_name).then(function () {
+                        syncDataHelper.saveData(sync_data).then(function () {
+                            console.log('Completed');
+                            done();
+                        });
+                    });
+                }
+            });
+        });
     });
 };
