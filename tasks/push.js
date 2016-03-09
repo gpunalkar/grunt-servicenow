@@ -113,8 +113,12 @@ module.exports = function (grunt) {
                                     payload,
                                     servicePromise;
 
-                                var funcX = function (fileList, path, fileObj, insert) {
-                                    servicePromise = updateRecord(fileObj);
+                                var insertOrUpdate = function (fileList, path, fileObj, insert) {
+                                    if (insert) {
+                                        servicePromise = insertRecord(fileObj);
+                                    } else {
+                                        servicePromise = updateRecord(fileObj);
+                                    }
                                     servicePromise.then(function () {
                                         sync_data[path]["hash"] = hash.hashContent(fileList[path]);
                                     }, function (e) {
@@ -125,44 +129,30 @@ module.exports = function (grunt) {
 
 
                                 for (var path in filesToSave) {
-                                    (function () {
-                                        var file_path = path;
-                                        payload = {};
-                                        payload[config.folders[foldername].field] = filesToSave[file_path];
+                                    payload = {};
+                                    payload[config.folders[foldername].field] = filesToSave[file_path];
 
-                                        fileObj = {
-                                            table: config.folders[foldername].table,
-                                            sys_id: sync_data[file_path].sys_id,
-                                            payload: payload
-                                        };
-                                        servicePromise = updateRecord(fileObj);
-                                        servicePromise.then(function () {
-                                            sync_data[file_path]["hash"] = hash.hashContent(filesToSave[file_path]);
-                                        }, function (e) {
-                                            console.log('ERROR', e);
-                                        });
-                                        promiseList.push(servicePromise);
-                                    })();
+                                    fileObj = {
+                                        table: config.folders[foldername].table,
+                                        sys_id: sync_data[file_path].sys_id,
+                                        payload: payload
+                                    };
+
+                                    insertOrUpdate(filesToSave, path, fileObj, false);
                                 }
 
                                 if (insert_new_files) {
                                     for (var path in newFiles) {
-                                        var file_path = path;
                                         payload = {};
                                         payload[config.folders[foldername].field] = filesToSave[file_path];
 
                                         fileObj = {
                                             table: config.folders[foldername].table,
-                                            sys_id: sync_data[file_path].sys_id,
+                                            //sys_id: sync_data[file_path].sys_id,
                                             payload: payload
                                         };
-                                        servicePromise = updateRecord(fileObj);
-                                        servicePromise.then(function () {
-                                            sync_data[file_path]["hash"] = hash.hashContent(filesToSave[file_path]);
-                                        }, function (e) {
-                                            console.log('ERROR', e);
-                                        });
-                                        promiseList.push(servicePromise);
+
+                                        insertOrUpdate(filesToSave, path, fileObj, true);
                                     }
                                 }
 
