@@ -11,7 +11,6 @@ module.exports = function () {
         return new Promise(function (resolve, reject) {
             fs.readdir(dir_path, function (err, files) {
                 if (err) {
-                    console.error("Error reading folder " + files, err);
                     return reject(err)
                 }
                 var promisesCreated = [];
@@ -69,7 +68,7 @@ module.exports = function () {
                 if (err) {
                     reject(err);
                 } else {
-                    console.log("Creating file " + file_path);
+                    console.log("Pulling " + file_path);
                     resolve();
                 }
             });

@@ -79,8 +79,7 @@ module.exports = function (grunt) {
                                         filesToSave = {},
                                         newFiles = [],
                                         promiseList = [],
-                                        currentPromise,
-                                        sync_data_update = {};
+                                        currentPromise;
 
                                     all_files.forEach(function (file_obj) {
                                         (function () {
@@ -99,8 +98,7 @@ module.exports = function (grunt) {
                                                 });
                                                 promiseList.push(currentPromise);
                                             } else {
-                                                console.log(record_path);
-                                                console.log('No local record for file ' + file_obj.name, record_path);
+                                                console.log('No local record for file ', record_path);
                                                 newFiles.push(file_obj);
                                             }
                                         })();
@@ -140,10 +138,7 @@ module.exports = function (grunt) {
 
                                         // Done updating records
                                         Promise.all(promiseList).then(function () {
-                                            console.log('done pushing');
-                                            syncDataHelper.saveData(sync_data).then(function () {
-                                                resolve();
-                                            });
+                                            resolve();
                                         });
                                     });
 
@@ -160,16 +155,17 @@ module.exports = function (grunt) {
                             });
 
                             Promise.all(promises).then(function () {
-                                //askToCreateNewFiles();
-                                done();
+                                syncDataHelper.saveData(sync_data).then(function () {
+                                    done();
+                                });
                             });
                         });
 
                     } else {
                         pushRecords(folder_name, file_name).then(function () {
-                            //askToCreateNewFiles().then(function () {
-                            done();
-                            //})
+                            syncDataHelper.saveData(sync_data).then(function () {
+                                done();
+                            });
                         });
                     }
                 });
