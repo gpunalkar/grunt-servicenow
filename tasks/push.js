@@ -16,121 +16,6 @@ module.exports = function (grunt) {
         var done = this.async();
         var force = false;
 
-
-        var getRecord = function (new_file) {
-
-            return new Promise(function (resolve, reject) {
-                // check if file is on server
-                var file_name = path.basename(new_files.file_name),
-                    config_folder = _config.folders[new_file.folder_name],
-                    getQuery = config_folder.key + "=" + file_name,
-                    queryObj = {
-                        table: config_folder.table,
-                        query: getQuery
-                    };
-                console.log(getQuery);
-                snService.getRecords(queryObj, function (err, obj) {
-                    if (err) {
-                        console.log("Error getting records: ", err);
-                        reject(err);
-                    }
-                    else if (obj.result.length === 0) {
-
-                        new_file.table = config_folder.table;
-                        new_file.key = config_folder.key;
-                        new_file.field = config_folder.field;
-                        new_file.extension = config_folder.extension;
-
-                        resolve(new_file);
-                    }
-                    else {
-                        console.log("record exists");
-                    }
-
-                });
-            })
-        };
-
-        var createRecords = function (records) {
-            return new Promise(function (resolve, reject) {
-                var counter = 0;
-                for (var i = 0; i < records.length; i++) {
-                    (function (index) {
-                        var payload = {};
-                        payload[records[index].key] = path.basename(records[index].file_name, "." + records[i].extension);
-                        payload[records[index].field] = records[index].content;
-
-                        var postObj = {
-                            table: records[index].table,
-                            payload: payload
-                        };
-
-                        snService.createRecord(postObj, function (err, result) {
-                            counter++;
-                            updateSyncData(records[index].file_name, result, records[index].field)
-
-                            if (counter === records.length) {
-                                resolve();
-                            }
-                        })
-
-                    }(i));
-
-                }
-            });
-        };
-
-        var askToCreateNewFiles = function () {
-            (function () {
-                return new Promise(function (resolve, reject) {
-                    var files = [];
-                    var counter = 0;
-                    for (var i = 0; i < new_files.length; i++) {
-
-                        (function (index) {
-                            getRecord(new_files[index]).then(function (new_file) {
-                                counter++;
-                                files.push(new_file);
-                                if (counter === new_files.length) {
-                                    resolve(files);
-                                }
-                            });
-
-                        }(i));
-
-                    }
-                });
-            }()).then(function (files) {
-
-                inquirer.prompt([{
-                    type: "checkbox",
-                    name: "records",
-                    message: "The following files do not have records on the instance. Select which ones you want to create",
-                    choices: files.map(function (d) {
-                        return {name: path.basename(d["file_name"]), value: d}
-                    }),
-                    default: true
-
-                }], function (answers) {
-                    createRecords(answers.records).then(function () {
-                        syncDataHelper.saveData(_sync_data);
-                    });
-
-                });
-            });
-        };
-
-        function updateSyncData(record, obj, content_field) {
-            var parms = {
-                sys_id: obj.result.sys_id,
-                sys_updated_on: obj.result.sys_created_on,
-                sys_updated_by: obj.result.sys_created_by,
-                hash: hash.hashContent(obj.result[content_field])
-            };
-            _sync_data[record] = parms;
-
-        }
-
         syncDataHelper.loadData().then(function (sync_data) {
                 require_config().then(function (config) {
                     var hash = HashHelper(sync_data);
@@ -214,7 +99,8 @@ module.exports = function (grunt) {
                                                 });
                                                 promiseList.push(currentPromise);
                                             } else {
-                                                console.log('No local record for file ' + file_obj.name);
+                                                console.log(record_path);
+                                                console.log('No local record for file ' + file_obj.name, record_path);
                                                 newFiles.push(file_obj);
                                             }
                                         })();
