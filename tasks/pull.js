@@ -7,6 +7,7 @@ var fs = require('fs'),
     require_config = require("../helper/config_validator"),
     fileHelper = require("../helper/file_helper"),
     HashHelper = require('../helper/hash'),
+    util = require('../helper/util'),
     syncDataHelper = require('../helper/sync_data_validator'),
     DESTINATION = require('../config/constant').DESTINATION;
 
@@ -62,12 +63,11 @@ module.exports = function (grunt) {
                                 sync_data_different = {},
                                 hashComparePromises = [],
                                 hashComparePromise,
-                                content,
                                 filename,
                                 file_path;
                             obj.result.forEach(function (element) {
                                 (function () {
-                                    content = element[config.folders[folder_name].field];
+                                    var content = element[config.folders[folder_name].field];
                                     filename = element.name;
                                     file_path = path.join(folder_name, filename);
 
@@ -120,8 +120,8 @@ module.exports = function (grunt) {
                                     }];
                                     inquirer.prompt(questions, function (answers) {
                                         if (answers.overwrite) {
-                                            for (var attrname in files_different) { files_to_save[attrname] = files_different[attrname]; }
-                                            for (var attrname in sync_data_different) { sync_data[attrname] = sync_data_different[attrname]; }
+                                            files_to_save = util.mergeObject(files_to_save, files_different)
+                                            sync_data = util.mergeObject(sync_data, sync_data_different);
                                         }
                                         fileHelper.saveFiles(files_to_save).then(function () {
                                             syncDataHelper.saveData(sync_data);  // We need to validate that per file base

@@ -197,8 +197,8 @@ module.exports = function (grunt) {
                                         currentPromise,
                                         sync_data_update = {};
 
-                                    (function () {
-                                        all_files.forEach(function (file_obj) {
+                                    all_files.forEach(function (file_obj) {
+                                        (function () {
                                             var record_path = path.join(DESTINATION, foldername, file_obj.name);
                                             if (record_path in sync_data) {
                                                 currentPromise = hash.compareHashRemote(record_path, foldername, config);
@@ -217,8 +217,8 @@ module.exports = function (grunt) {
                                                 console.log('No local record for file ' + file_obj.name);
                                                 newFiles.push(file_obj);
                                             }
-                                        });
-                                    })();
+                                        })();
+                                    });
 
                                     // Done comparing the hashes
                                     Promise.all(promiseList).then(function () {
@@ -227,34 +227,34 @@ module.exports = function (grunt) {
                                         var fileObj,
                                             payload,
                                             servicePromise;
-                                        (function () {
-                                            for (var path in filesToSave) {
+                                        for (var path in filesToSave) {
+                                            (function () {
+                                                var file_path = path;
                                                 payload = {};
-                                                payload[config.folders[folder_name].field] = filesToSave[path];
+
+                                                payload[config.folders[foldername].field] = filesToSave[file_path];
+
 
                                                 fileObj = {
                                                     table: config.folders[foldername].table,
-                                                    sys_id: sync_data[path].sys_id,
+                                                    sys_id: sync_data[file_path].sys_id,
                                                     payload: payload
                                                 };
                                                 servicePromise = updateRecord(fileObj);
                                                 servicePromise.then(function () {
-                                                    console.log('success', path);
-                                                    sync_data_update[path] = sync_data[path];
-                                                    sync_data_update[path].hash = hash.hashContent(filesToSave[path]);
+                                                    sync_data[file_path]["hash"] = hash.hashContent(filesToSave[file_path]);
 
                                                 }, function (e) {
                                                     console.log('ERROR', e);
                                                 });
                                                 promiseList.push(servicePromise);
-                                            }
-                                        })();
+                                            })();
+                                        }
 
 
                                         // Done updating records
                                         Promise.all(promiseList).then(function () {
                                             console.log('done pushing');
-                                            sync_data = util.mergeObject(sync_data_update, sync_data);
                                             syncDataHelper.saveData(sync_data).then(function () {
                                                 resolve();
                                             });
