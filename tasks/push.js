@@ -16,6 +16,9 @@ module.exports = function (grunt) {
         var done = this.async();
         var force = false;
 
+        var new_file = grunt.option('new') || grunt.config('new');
+        var force = grunt.option('new') || grunt.config('new');
+
         syncDataHelper.loadData().then(function (sync_data) {
             require_config().then(function (config) {
                 var hash = HashHelper(sync_data);
@@ -157,7 +160,7 @@ module.exports = function (grunt) {
 
                         Promise.all(promises).then(function () {
                             syncDataHelper.saveData(sync_data).then(function () {
-                                console.log('done');
+                                console.log('Completed');
                                 done();
                             });
                         });

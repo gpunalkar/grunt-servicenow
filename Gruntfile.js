@@ -8,4 +8,7 @@ module.exports = function (grunt) {
     });
     grunt.loadNpmTasks('grunt-servicenow');
     grunt.loadNpmTasks('grunt-contrib-watch');
+
+    grunt.registerTask('default', ["set_config:new:true",'push']);
+
 };
