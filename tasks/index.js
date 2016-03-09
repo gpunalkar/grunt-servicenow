@@ -8,7 +8,9 @@ module.exports = function (grunt) {
     require('./runserver')(grunt);
 
     grunt.event.on('watch', function (action, filepath) {
-        grunt.config(['filechanged'], path.basename(filepath).replace(path.extname(filepath),""));
+        grunt.config("filechanged", path.basename(filepath).replace(path.extname(filepath),""));
+        grunt.config("folder",path.relative(path.join(process.cwd(),"dist"),path.dirname(filepath)));
+
     });
 
     grunt.registerTask('set_config', 'Set a config property.', function(name, val) {
