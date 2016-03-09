@@ -1,3 +1,4 @@
+var path = require('path');
 module.exports = function (grunt) {
 
     grunt.initConfig({
@@ -10,8 +11,12 @@ module.exports = function (grunt) {
         }
     });
 
+    grunt.event.on('watch', function (action, filepath) {
+        grunt.config(['filechanged'], path.basename(filepath).replace(path.extname(filepath),""));
+    });
+
     grunt.loadNpmTasks('grunt-servicenow');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    grunt.registerTask('new', ["set_config:new:true", 'push:ui_scripts']);
+    //grunt.registerTask('new', ["set_config:new:true", 'push:ui_scripts']); // Hack
 
 };
