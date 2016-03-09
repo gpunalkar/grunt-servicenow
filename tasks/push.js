@@ -38,6 +38,14 @@ module.exports = function (grunt) {
                     });
                 };
 
+                var insertRecord = function (params) {
+                    return new Promise(function (resolve, reject) {
+                        snService.createRecord(params, function (err, result) {
+                            resolve();
+                        })
+                    });
+                };
+
                 var askQuestions = function () {
                     return new Promise(function (resolve, reject) {
                         var questions = [
@@ -80,7 +88,7 @@ module.exports = function (grunt) {
                         fileHelper.readFiles(foldername, filename).then(function (all_files) {
                             var filesChanged = [],
                                 filesToSave = {},
-                                newFiles = [],
+                                newFiles = {},
                                 promiseList = [],
                                 currentPromise;
 
@@ -101,7 +109,7 @@ module.exports = function (grunt) {
                                         promiseList.push(currentPromise);
                                     } else {
                                         console.log('No local record for file ', record_path);
-                                        newFiles.push(file_obj);
+                                        newFiles[record_path] = file_obj.content;
                                     }
                                 })();
                             });
@@ -128,7 +136,7 @@ module.exports = function (grunt) {
                                 };
 
 
-                                for (var path in filesToSave) {
+                                for (var file_path in filesToSave) {
                                     payload = {};
                                     payload[config.folders[foldername].field] = filesToSave[file_path];
 
@@ -138,21 +146,19 @@ module.exports = function (grunt) {
                                         payload: payload
                                     };
 
-                                    insertOrUpdate(filesToSave, path, fileObj, false);
+                                    insertOrUpdate(filesToSave, file_path, fileObj, false);
                                 }
 
                                 if (insert_new_files) {
-                                    for (var path in newFiles) {
+                                    for (var file_path in newFiles) {
                                         payload = {};
-                                        payload[config.folders[foldername].field] = filesToSave[file_path];
-
+                                        payload[config.folders[foldername].key] = path.basename(file_path).replace(path.extname(file_path), ""); // Get filename without extension
+                                        payload[config.folders[foldername].field] = newFiles[file_path];
                                         fileObj = {
                                             table: config.folders[foldername].table,
-                                            //sys_id: sync_data[file_path].sys_id,
                                             payload: payload
                                         };
-
-                                        insertOrUpdate(filesToSave, path, fileObj, true);
+                                        insertOrUpdate(filesToSave, file_path, fileObj, true);
                                     }
                                 }
 

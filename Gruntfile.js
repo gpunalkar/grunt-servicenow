@@ -9,6 +9,6 @@ module.exports = function (grunt) {
     grunt.loadNpmTasks('grunt-servicenow');
     grunt.loadNpmTasks('grunt-contrib-watch');
 
-    grunt.registerTask('default', ["set_config:new:true",'push']);
+    grunt.registerTask('new', ["set_config:new:true",'push:ui_scripts']);
 
 };
