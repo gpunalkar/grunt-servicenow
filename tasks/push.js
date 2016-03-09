@@ -16,8 +16,8 @@ module.exports = function (grunt) {
         var done = this.async();
         var force = false;
 
-        var new_file = grunt.option('new') || grunt.config('new');
-        var force = grunt.option('new') || grunt.config('new');
+        var insert_new_files = grunt.option('new') || grunt.config('new');
+        var force_update = grunt.option('new') || grunt.config('new');
 
         syncDataHelper.loadData().then(function (sync_data) {
             require_config().then(function (config) {
@@ -90,13 +90,12 @@ module.exports = function (grunt) {
                                     if (record_path in sync_data) {
                                         currentPromise = hash.compareHashRemote(record_path, foldername, config);
                                         currentPromise.then(function (sameHash) {
-                                            if (sameHash) {
+                                            if (sameHash || force_update) {
                                                 console.log('File ' + file_obj.name + ' hasnt changed', record_path);
                                                 filesToSave[record_path] = file_obj.content;
                                             } else {
                                                 console.log('File ' + file_obj.name + ' changed');
                                                 filesChanged.push(file_obj);
-
                                             }
                                         });
                                         promiseList.push(currentPromise);
@@ -110,17 +109,26 @@ module.exports = function (grunt) {
                             // Done comparing the hashes
                             Promise.all(promiseList).then(function () {
                                 promiseList = [];
-
                                 var fileObj,
                                     payload,
                                     servicePromise;
+
+                                var funcX = function (fileList, path, fileObj, insert) {
+                                    servicePromise = updateRecord(fileObj);
+                                    servicePromise.then(function () {
+                                        sync_data[path]["hash"] = hash.hashContent(fileList[path]);
+                                    }, function (e) {
+                                        console.log('ERROR', e);
+                                    });
+                                    promiseList.push(servicePromise);
+                                };
+
+
                                 for (var path in filesToSave) {
                                     (function () {
                                         var file_path = path;
                                         payload = {};
-
                                         payload[config.folders[foldername].field] = filesToSave[file_path];
-
 
                                         fileObj = {
                                             table: config.folders[foldername].table,
@@ -130,12 +138,32 @@ module.exports = function (grunt) {
                                         servicePromise = updateRecord(fileObj);
                                         servicePromise.then(function () {
                                             sync_data[file_path]["hash"] = hash.hashContent(filesToSave[file_path]);
-
                                         }, function (e) {
                                             console.log('ERROR', e);
                                         });
                                         promiseList.push(servicePromise);
                                     })();
+                                }
+
+                                if (insert_new_files) {
+                                    for (var path in newFiles) {
+                                        var file_path = path;
+                                        payload = {};
+                                        payload[config.folders[foldername].field] = filesToSave[file_path];
+
+                                        fileObj = {
+                                            table: config.folders[foldername].table,
+                                            sys_id: sync_data[file_path].sys_id,
+                                            payload: payload
+                                        };
+                                        servicePromise = updateRecord(fileObj);
+                                        servicePromise.then(function () {
+                                            sync_data[file_path]["hash"] = hash.hashContent(filesToSave[file_path]);
+                                        }, function (e) {
+                                            console.log('ERROR', e);
+                                        });
+                                        promiseList.push(servicePromise);
+                                    }
                                 }
 
 
@@ -145,7 +173,7 @@ module.exports = function (grunt) {
                                 });
                             });
 
-                        }, function(){
+                        }, function () {
                             resolve();
                         });
                     });
