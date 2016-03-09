@@ -1,17 +1,13 @@
 module.exports = function (grunt) {
 
-    //var snConfig = grunt.file.readJSON('.sn-config.json');
-    //var watchObj = {};
-    //for (key in snConfig.folders) {
-    //    watchObj[key] = {
-    //        files: ['dist/' + key + '/*'],
-    //        tasks: ['push:' + key + ':<%= filechanged %>']
-    //    };
-    //}
-
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'), //This allows us to refer to the values of properties within our package.json file. e.g. <%= pkg.name %>
-        //watch: watchObj
+        watch: {
+            ui_scripts: {
+                files: ['dist/ui_scripts/*'],
+                tasks: ['push:ui_scripts:<%= filechanged %>']
+            }
+        }
     });
 
     grunt.loadNpmTasks('grunt-servicenow');
