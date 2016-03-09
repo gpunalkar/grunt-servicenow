@@ -5,7 +5,7 @@ module.exports = function (grunt) {
         watch: {
             ui_scripts: {
                 files: ['dist/ui_scripts/*'],
-                tasks: ['push:ui_scripts:<%= filechanged %>']
+                tasks: ['push:<%= folder %>:<%= filechanged %>']
             }
         }
     });
