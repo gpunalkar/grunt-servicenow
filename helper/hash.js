@@ -29,6 +29,9 @@ module.exports = function (sync_data) {
                 var hash_comparison;
 
                 if (err) {
+                    if (err.code == "ENOENT") {
+                        return fulfill(true);
+                    }
                     console.log(err);
                 } else {
                     var file_hash = that.hashContent(data);
