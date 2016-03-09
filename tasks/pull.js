@@ -122,16 +122,12 @@ module.exports = function (grunt) {
                                             sync_data = util.mergeObject(sync_data, sync_data_different);
                                         }
                                         fileHelper.saveFiles(files_to_save).then(function () {
-                                            syncDataHelper.saveData(sync_data).then(function () {
-                                                resolve();
-                                            });
+                                            resolve();
                                         });
                                     });
                                 } else {
                                     fileHelper.saveFiles(files_to_save).then(function () {
-                                        syncDataHelper.saveData(sync_data).then(function () {
-                                            resolve();
-                                        });
+                                        resolve();
                                     });
                                 }
                             });
@@ -149,7 +145,10 @@ module.exports = function (grunt) {
                         });
 
                         Promise.all(promises).then(function () {
-                            done();
+                            syncDataHelper.saveData(sync_data).then(function () {
+                                console.log('Completed');
+                                done();
+                            });
                         });
                     });
                 } else {
@@ -160,8 +159,10 @@ module.exports = function (grunt) {
                     }
 
                     pullRecords(folder_name, file_name_or_prefix, exact_filename).then(function () {
-                        console.log('Done Pulling!');
-                        done();
+                        syncDataHelper.saveData(sync_data).then(function () {
+                            console.log('Completed');
+                            done();
+                        });
                     }, function (err) {
                         console.error("\nThere was a problem completing this for: " + folder_name + "\n", err);
                         done();
