@@ -36,9 +36,15 @@ module.exports = function (grunt) {
                     });
                 };
 
-                var insertRecord = function (params) {
+                var insertRecord = function (params, file_path, content) {
                     return new Promise(function (resolve, reject) {
                         snService.createRecord(params, function (err, result) {
+                            sync_data[file_path] = {
+                                sys_id: result.result.sys_id,
+                                sys_updated_on: result.result.sys_updated_on,
+                                sys_updated_by: result.result.sys_updated_by,
+                                hash: hash.hashContent(content)
+                            };
                             resolve();
                         })
                     });
@@ -119,9 +125,9 @@ module.exports = function (grunt) {
                                     payload,
                                     servicePromise;
 
-                                var insertOrUpdate = function (fileList, path, fileObj, insert) {
+                                var insertOrUpdate = function (fileList, path, fileObj, insert, file_path) {
                                     if (insert) {
-                                        servicePromise = insertRecord(fileObj);
+                                        servicePromise = insertRecord(fileObj, file_path, fileList[file_path]);
                                     } else {
                                         servicePromise = updateRecord(fileObj);
                                     }
@@ -158,7 +164,7 @@ module.exports = function (grunt) {
                                             table: config.folders[foldername].table,
                                             payload: payload
                                         };
-                                        insertOrUpdate(filesToSave, file_path, fileObj, true);
+                                        insertOrUpdate(newFiles, file_path, fileObj, true, file_path);
                                     }
                                 }
 
