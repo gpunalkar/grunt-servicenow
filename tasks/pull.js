@@ -14,6 +14,8 @@ var fs = require('fs'),
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folder_name, file_name) {
         var done = this.async();
+        var force_update = grunt.option('force') || grunt.config('force');
+
         syncDataHelper.loadData().then(function (sync_data) {
             require_config().then(function (config) {
                 var hash = HashHelper(sync_data);

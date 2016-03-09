@@ -1,4 +1,3 @@
-var require_config = require("./helper/config_validator");
 module.exports = function (grunt) {
     var snConfig = grunt.file.readJSON('.sn-config.json');
 
