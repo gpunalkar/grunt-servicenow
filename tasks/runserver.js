@@ -2,6 +2,7 @@
 var express = require('express'),
     require_config = require("../helper/config_validator"),
     restler = require('restler'),
+    snClient = require('../services/snclient.js'),
     path = require('path');
 var DEFAULT_MAP_EXTENSION = [
     {
@@ -22,6 +23,18 @@ module.exports = function (grunt) {
             var map_extension = config.map_extension || DEFAULT_MAP_EXTENSION;
             var app = express();
 
+            app.post('/api/*', function(req, res){
+                try {
+					var snService = new snClient(config).setup();
+                } catch (err) {
+                    console.log('Some error happend', err);
+                }
+                console.log("hello");
+                snService.postObjectify(req.url,null, function(result){
+                    console.log("hello");
+                    res.send(result);
+                });
+            });
             app.get('/api/*', function (req, res) {
                 var auth = new Buffer(config.auth, 'base64').toString(),
                     parts = auth.split(':'),
