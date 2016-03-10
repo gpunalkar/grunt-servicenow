@@ -1,7 +1,7 @@
 'use strict';
 var express = require('express'),
     require_config = require("../helper/config_validator"),
-    restify = require('restify'),
+    restler = require('restler'),
     path = require('path');
 var DEFAULT_MAP_EXTENSION = [
     {
@@ -30,19 +30,18 @@ module.exports = function (grunt) {
                     protocol = config.protocol;
 
 
-                var clientOptions = {
-                    url: protocol + '://' + config.host
-                };
+//                var clientOptions = {
+//                    url: protocol + '://' + config.host
+//                };
 
                 try {
-                    var client = restify.createJsonClient(clientOptions);
-                    client.basicAuth(user, pass);
+					var snService = new ServiceNow(config).setup();
                 } catch (err) {
                     console.log('Some error happend', err);
                 }
 
-                client.get(req.url, function (err, api_req, api_res, obj) {
-                    res.send(api_res.body);
+                snService.getRecords(req.url, function (result) {
+                    res.send(result);
                 });
 
             });
