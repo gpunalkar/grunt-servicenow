@@ -59,7 +59,7 @@ module.exports = function (grunt) {
 
             app.use(express.static('dist'));
             app.use(express.static('dist/images'));
-
+            app.use(express.static("node_modules"));
             app.listen(port, function () {
                 grunt.log.writeln('App listening on port ' + port + '!');
             });
