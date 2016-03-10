@@ -19,11 +19,6 @@ module.exports = function (grunt) {
                 name: "host",
                 message: "Enter servicenow instance name (\<instance\>.service-now.com). "
             },
-			{
-				type: "input",
-				name: "app_name",
-				message: "Enter your project's Angular App Name."
-			},
             {
                 type: "input",
                 name: "project_prefix",
@@ -52,7 +47,6 @@ module.exports = function (grunt) {
             servicenow_config.auth = hash;
             servicenow_config.host = answers.host + ".service-now.com";
             servicenow_config.project_prefix = answers.project_prefix;
-			servicenow_config.app_name = answers.app_name;
 			servicenow_config.app_dir = answers.app_dir;
 				
 
