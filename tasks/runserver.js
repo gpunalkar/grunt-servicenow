@@ -1,7 +1,8 @@
 'use strict';
 var express = require('express'),
     require_config = require("../helper/config_validator"),
-    restify = require('restify'),
+    restler = require('restler'),
+    snClient = require('../services/snclient.js'),
     path = require('path');
 var DEFAULT_MAP_EXTENSION = [
     {
@@ -22,6 +23,18 @@ module.exports = function (grunt) {
             var map_extension = config.map_extension || DEFAULT_MAP_EXTENSION;
             var app = express();
 
+            app.post('/api/*', function(req, res){
+                try {
+					var snService = new snClient(config).setup();
+                } catch (err) {
+                    console.log('Some error happend', err);
+                }
+                console.log("hello");
+                snService.postObjectify(req.url,null, function(result){
+                    console.log("hello");
+                    res.send(result);
+                });
+            });
             app.get('/api/*', function (req, res) {
                 var auth = new Buffer(config.auth, 'base64').toString(),
                     parts = auth.split(':'),
@@ -30,19 +43,18 @@ module.exports = function (grunt) {
                     protocol = config.protocol;
 
 
-                var clientOptions = {
-                    url: protocol + '://' + config.host
-                };
+//                var clientOptions = {
+//                    url: protocol + '://' + config.host
+//                };
 
                 try {
-                    var client = restify.createJsonClient(clientOptions);
-                    client.basicAuth(user, pass);
+					var snService = new ServiceNow(config).setup();
                 } catch (err) {
                     console.log('Some error happend', err);
                 }
 
-                client.get(req.url, function (err, api_req, api_res, obj) {
-                    res.send(api_res.body);
+                snService.getRecords(req.url, function (result) {
+                    res.send(result);
                 });
 
             });
@@ -60,7 +72,7 @@ module.exports = function (grunt) {
 
             app.use(express.static('dist'));
             app.use(express.static('dist/images'));
-
+            app.use(express.static("node_modules"));
             app.listen(port, function () {
                 grunt.log.writeln('App listening on port ' + port + '!');
             });

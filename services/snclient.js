@@ -25,9 +25,7 @@ module.exports = restler.service(
 		this.defaults.username = username;
 		this.defaults.password = password;
 		this.defaults.headers = headers;
-		
-		
-		
+
 	},
 	{
 		
@@ -159,6 +157,11 @@ module.exports = restler.service(
 				send(parms);
 			}
 			
+			function get(url, callback){
+				client.get(url).on("complete", function(result){
+					callback(result);
+				});
+			}
 			function updateRecord(obj, callback) {
 				//hack for ui_page
 				obj.payload['direct'] = true;
@@ -183,11 +186,22 @@ module.exports = restler.service(
 				
 				send(parms);
 			}
+
+            function postObjectify(url, input, callback){
+                client.post(url).on("success",function(result){
+                    callback(result);
+                }).on("error",function(err){
+                    console.log("error");
+                });
+
+            }
 			
 			return {
+				get : get,
 				getRecords : getRecords,
 				updateRecord : updateRecord,
-				createRecord : createRecord
+				createRecord : createRecord,
+                postObjectify : postObjectify
 			};
 			
 		}
