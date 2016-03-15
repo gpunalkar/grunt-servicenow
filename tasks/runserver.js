@@ -48,12 +48,12 @@ module.exports = function (grunt) {
 //                };
 
                 try {
-					var snService = new ServiceNow(config).setup();
+					var snService = new snClient(config).setup();
                 } catch (err) {
                     console.log('Some error happend', err);
                 }
 
-                snService.getRecords(req.url, function (result) {
+                snService.get(req.url, function (result) {
                     res.send(result);
                 });
 
