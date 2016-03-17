@@ -102,7 +102,7 @@ $ grunt runserver #default port 3000
 $ grunt runserver:PORT
 ```
 ### Version
-0.3.7
+0.3.6
 
 License
 ----
