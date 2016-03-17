@@ -103,7 +103,6 @@ module.exports = function (grunt) {
                                 })();
                             });
                             Promise.all(hashComparePromises).then(function () {
-
                                 if (Object.keys(files_different).length > 0) {
                                     console.log('You have mande changes to the following files.');
                                     for (var key in files_different) {
@@ -123,13 +122,13 @@ module.exports = function (grunt) {
                                             files_to_save = util.mergeObject(files_to_save, files_different)
                                             sync_data = util.mergeObject(sync_data, sync_data_different);
                                         }
-                                        fileHelper.saveFiles(files_to_save).then(function () {
-                                            resolve();
+                                        fileHelper.saveFiles(files_to_save).then(function (files_saved) {
+                                            resolve(files_saved);
                                         });
                                     });
                                 } else {
-                                    fileHelper.saveFiles(files_to_save).then(function () {
-                                        resolve();
+                                    fileHelper.saveFiles(files_to_save).then(function (files_saved) {
+                                        resolve(files_saved);
                                     });
                                 }
                             });
@@ -146,9 +145,14 @@ module.exports = function (grunt) {
                             promises.push(pullRecords(folder, answers.prefix, false));
                         });
 
-                        Promise.all(promises).then(function () {
+                        Promise.all(promises).then(function (files_saved) {
+                            console.log('Files saved: ');
+                            files_saved.forEach(function (folder) {
+                                folder.forEach(function (item) {
+                                    console.log(' - ' + item);
+                                });
+                            });
                             syncDataHelper.saveData(sync_data).then(function () {
-                                console.log('Completed');
                                 done();
                             });
                         });
@@ -160,9 +164,12 @@ module.exports = function (grunt) {
                         exact_filename = true;
                     }
 
-                    pullRecords(folder_name, file_name_or_prefix, exact_filename).then(function () {
+                    pullRecords(folder_name, file_name_or_prefix, exact_filename).then(function (files_saved) {
+                        console.log('Files saved: ');
+                        files_saved.forEach(function (item) {
+                            console.log(' - ' + item);
+                        });
                         syncDataHelper.saveData(sync_data).then(function () {
-                            console.log('Completed');
                             done();
                         });
                     }, function (err) {

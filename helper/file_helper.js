@@ -68,8 +68,8 @@ module.exports = function () {
                 if (err) {
                     reject(err);
                 } else {
-                    console.log("Pulling " + file_path);
-                    resolve();
+                    //console.log("Pulling " + file_path);
+                    resolve(file_path);
                 }
             });
         });
@@ -94,8 +94,8 @@ module.exports = function () {
                 promisesList.push(saveFile(file_path, files_to_create[file_path]));
             }
 
-            Promise.all(promisesList).then(function () {
-                resolve();
+            Promise.all(promisesList).then(function (files_saved) {
+                resolve(files_saved);
             });
         });
     };
