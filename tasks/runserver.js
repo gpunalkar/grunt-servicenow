@@ -29,7 +29,7 @@ module.exports = function (grunt) {
                 } catch (err) {
                     console.log('Some error happend', err);
                 }
-                console.log("hello");
+                
                 snService.postObjectify(req.url,null, function(result){
                     console.log("hello");
                     res.send(result);
