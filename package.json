@@ -6,6 +6,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
+    "body-parser": "^1.15.0",
     "express": "^4.13.4",
     "fs-extra": "^0.26.5",
     "glob": "^7.0.0",

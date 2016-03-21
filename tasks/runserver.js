@@ -3,7 +3,9 @@ var express = require('express'),
     require_config = require("../helper/config_validator"),
     restler = require('restler'),
     snClient = require('../services/snclient.js'),
-    path = require('path');
+    path = require('path'),
+    bodyParser = require('body-parser');
+
 var DEFAULT_MAP_EXTENSION = [
     {
         from: ".do",
@@ -23,41 +25,38 @@ module.exports = function (grunt) {
             var map_extension = config.map_extension || DEFAULT_MAP_EXTENSION;
             var app = express();
 
+            app.use( bodyParser.json() );       // to support JSON-encoded bodies
+
+
+            /**
+             * Api
+             */
+            try {
+                var snService = new snClient(config).setup();
+            } catch (err) {
+                console.log('Some error happend', err);
+            }
             app.post('/api/*', function(req, res){
-                try {
-					var snService = new snClient(config).setup();
-                } catch (err) {
-                    console.log('Some error happend', err);
-                }
-                console.log("hello");
-                snService.postObjectify(req.url,null, function(result){
-                    console.log("hello");
+                snService.post(req.url,req.body, function(result){
                     res.send(result);
                 });
             });
+
+            app.put('/api/*', function(req, res){
+                snService.put(req.url,req.body, function(result){
+                    res.send(result);
+                });
+            });
+
             app.get('/api/*', function (req, res) {
-                var auth = new Buffer(config.auth, 'base64').toString(),
-                    parts = auth.split(':'),
-                    user = parts[0],
-                    pass = parts[1],
-                    protocol = config.protocol;
-
-
-//                var clientOptions = {
-//                    url: protocol + '://' + config.host
-//                };
-
-                try {
-					var snService = new snClient(config).setup();
-                } catch (err) {
-                    console.log('Some error happend', err);
-                }
-
                 snService.get(req.url, function (result) {
                     res.send(result);
                 });
-
             });
+            /**
+             * Api.end
+             */
+
 
             app.get(/^\/(?!api).*/i, function (req, res, next) {
                 map_extension.forEach(function (ext_map) {
@@ -73,6 +72,8 @@ module.exports = function (grunt) {
             app.use(express.static('dist'));
             app.use(express.static('dist/images'));
             app.use(express.static("node_modules"));
+            app.use(express.static("bower_components"));
+            app.use(express.static("."));
             app.listen(port, function () {
                 grunt.log.writeln('App listening on port ' + port + '!');
             });
