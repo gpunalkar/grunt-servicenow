@@ -14,6 +14,6 @@ module.exports = function (grunt) {
 
     grunt.loadNpmTasks('grunt-servicenow');
     grunt.loadNpmTasks('grunt-contrib-watch');
-    //grunt.registerTask('new', ["set_config:new:true", 'push:ui_scripts']); // Hack
+    grunt.registerTask('runservermock', ["set_config:savemock:true", 'runserver']); // Hack
 
 };

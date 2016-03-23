@@ -4,6 +4,8 @@ var express = require('express'),
     restler = require('restler'),
     snClient = require('../services/snclient.js'),
     path = require('path'),
+    slugify = require('../helper/util').slugify,
+    fileHelper = require("../helper/file_helper"),
     bodyParser = require('body-parser');
 
 var DEFAULT_MAP_EXTENSION = [
@@ -16,6 +18,16 @@ var DEFAULT_MAP_EXTENSION = [
 module.exports = function (grunt) {
     grunt.registerTask('runserver', 'My "runserver" task.', function (port) {
         var done = this.async();
+        var saveMock = grunt.option('savemock') || grunt.config('savemock');
+        var mock_path = path.join('dist',"mock");
+
+
+        var saveMockData = function (request, result) {
+            console.log(request.originalUrl);
+            var file_path = path.join(mock_path, slugify(request.originalUrl) + ".json");
+            fileHelper.saveFile(file_path, JSON.stringify(result));
+        };
+
 
         if (typeof port === "undefined") {
             port = 3000
@@ -36,23 +48,28 @@ module.exports = function (grunt) {
             } catch (err) {
                 console.log('Some error happend', err);
             }
+
             app.post('/api/*', function(req, res){
                 snService.post(req.url,req.body, function(result){
+                    if (saveMock) saveMockData(req,result);
                     res.send(result);
                 });
             });
 
             app.put('/api/*', function(req, res){
                 snService.put(req.url,req.body, function(result){
+                    if (saveMock) saveMockData(req,result);
                     res.send(result);
                 });
             });
 
             app.get('/api/*', function (req, res) {
                 snService.get(req.url, function (result) {
+                    if (saveMock) saveMockData(req,result);
                     res.send(result);
                 });
             });
+
             /**
              * Api.end
              */

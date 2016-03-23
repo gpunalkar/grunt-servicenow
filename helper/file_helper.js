@@ -59,7 +59,7 @@ module.exports = function () {
 
     };
 
-    var saveFile = function (file_path, file_content) {
+    this.saveFile = function (file_path, file_content) {
         var _this = this;
 
         if (!(path.isAbsolute(file_path))) file_path = path.join(current_path, file_path);
@@ -68,13 +68,13 @@ module.exports = function () {
                 if (err) {
                     reject(err);
                 } else {
-                    //console.log("Pulling " + file_path);
                     resolve(file_path);
                 }
             });
         });
 
     };
+
 
 
     /**
@@ -91,7 +91,7 @@ module.exports = function () {
             var files_created = 0;
             var promisesList = [];
             for (file_path in files_to_create) {
-                promisesList.push(saveFile(file_path, files_to_create[file_path]));
+                promisesList.push(this.saveFile(file_path, files_to_create[file_path]));
             }
 
             Promise.all(promisesList).then(function (files_saved) {
