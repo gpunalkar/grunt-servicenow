@@ -23,7 +23,6 @@ module.exports = function (grunt) {
 
 
         var saveMockData = function (request, result) {
-            console.log(request.originalUrl);
             var file_path = path.join(mock_path, slugify(request.originalUrl) + ".json");
             fileHelper.saveFile(file_path, JSON.stringify(result));
         };
