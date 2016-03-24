@@ -6,7 +6,9 @@ var express = require('express'),
     path = require('path'),
     slugify = require('../helper/util').slugify,
     fileHelper = require("../helper/file_helper"),
-    bodyParser = require('body-parser');
+    bodyParser = require('body-parser'),
+    fs = require('fs');
+
 
 var DEFAULT_MAP_EXTENSION = [
     {
@@ -24,7 +26,11 @@ module.exports = function (grunt) {
 
         var saveMockData = function (request, result) {
             var file_path = path.join(mock_path, slugify(request.originalUrl) + ".json");
-            fileHelper.saveFile(file_path, JSON.stringify(result));
+            try {
+                fs.accessSync(file_path, fs.F_OK);
+            } catch (e) {
+                fileHelper.saveFile(file_path, JSON.stringify(result));
+            }
         };
 
 
@@ -36,7 +42,7 @@ module.exports = function (grunt) {
             var map_extension = config.map_extension || DEFAULT_MAP_EXTENSION;
             var app = express();
 
-            app.use( bodyParser.json() );       // to support JSON-encoded bodies
+            app.use(bodyParser.json());       // to support JSON-encoded bodies
 
 
             /**
@@ -48,23 +54,23 @@ module.exports = function (grunt) {
                 console.log('Some error happend', err);
             }
 
-            app.post('/api/*', function(req, res){
-                snService.post(req.url,req.body, function(result){
-                    if (saveMock) saveMockData(req,result);
+            app.post('/api/*', function (req, res) {
+                snService.post(req.url, req.body, function (result) {
+                    if (saveMock) saveMockData(req, result);
                     res.send(result);
                 });
             });
 
-            app.put('/api/*', function(req, res){
-                snService.put(req.url,req.body, function(result){
-                    if (saveMock) saveMockData(req,result);
+            app.put('/api/*', function (req, res) {
+                snService.put(req.url, req.body, function (result) {
+                    if (saveMock) saveMockData(req, result);
                     res.send(result);
                 });
             });
 
             app.get('/api/*', function (req, res) {
                 snService.get(req.url, function (result) {
-                    if (saveMock) saveMockData(req,result);
+                    if (saveMock) saveMockData(req, result);
                     res.send(result);
                 });
             });
