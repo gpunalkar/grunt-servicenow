@@ -16,7 +16,8 @@ module.exports = function (grunt) {
         var done = this.async();
         var insert_new_files = grunt.option('new') || grunt.config('new');
         var force_update = grunt.option('force') || grunt.config('force');
-
+        var make_direct = grunt.option('direct') || grunt.config('direct');
+        
         syncDataHelper.loadData().then(function (sync_data) {
             require_config().then(function (config) {
                 var hash = HashHelper(sync_data);
@@ -145,7 +146,11 @@ module.exports = function (grunt) {
                                 for (var file_path in filesToSave) {
                                     payload = {};
                                     payload[config.folders[foldername].field] = filesToSave[file_path];
-
+                                    
+                                    if(make_direct){
+                                        payload['direct'] = true;
+                                    }
+                                    
                                     fileObj = {
                                         table: config.folders[foldername].table,
                                         sys_id: sync_data[file_path].sys_id,
@@ -160,6 +165,11 @@ module.exports = function (grunt) {
                                         payload = {};
                                         payload[config.folders[foldername].key] = path.basename(file_path).replace(path.extname(file_path), ""); // Get filename without extension
                                         payload[config.folders[foldername].field] = newFiles[file_path];
+                                        
+                                        if(make_direct){
+                                            payload['direct'] = true;
+                                        }
+                                        
                                         fileObj = {
                                             table: config.folders[foldername].table,
                                             payload: payload
