@@ -16,6 +16,15 @@ module.exports = function (grunt) {
         var done = this.async();
         var insert_new_files = grunt.option('new') || grunt.config('new');
         var force_update = grunt.option('force') || grunt.config('force');
+        var deploy = grunt.option('deploy') || grunt.config('deploy');
+        var global_payload = grunt.option('payload') || grunt.config('payload');
+        if (global_payload) {
+            try {
+                global_payload = JSON.parse(global_payload);
+            } catch (e) {
+                global_payload = null;
+            }
+        }
 
         syncDataHelper.loadData().then(function (sync_data) {
             require_config().then(function (config) {
@@ -98,6 +107,13 @@ module.exports = function (grunt) {
 
                             all_files.forEach(function (file_obj) {
                                 (function () {
+                                    if (deploy) {
+                                        if ((typeof deploy) == "boolean") {
+                                            file_obj.content = file_obj.content + " ";
+                                        } else {
+                                            file_obj.content = file_obj.content + deploy;
+                                        }
+                                    }
                                     var record_path = path.join(DESTINATION, foldername, file_obj.name);
                                     if (record_path in sync_data) {
                                         currentPromise = hash.compareHashRemote(record_path, foldername, config);
@@ -144,6 +160,10 @@ module.exports = function (grunt) {
 
                                 for (var file_path in filesToSave) {
                                     payload = {};
+
+                                    if (global_payload) {
+                                        payload = JSON.parse(JSON.stringify(global_payload));
+                                    }
                                     payload[config.folders[foldername].field] = filesToSave[file_path];
 
                                     fileObj = {
@@ -158,6 +178,9 @@ module.exports = function (grunt) {
                                 if (insert_new_files) {
                                     for (var file_path in newFiles) {
                                         payload = {};
+                                        if (global_payload) {
+                                            payload = JSON.parse(JSON.stringify(global_payload));
+                                        }
                                         payload[config.folders[foldername].key] = path.basename(file_path).replace(path.extname(file_path), ""); // Get filename without extension
                                         payload[config.folders[foldername].field] = newFiles[file_path];
                                         fileObj = {
