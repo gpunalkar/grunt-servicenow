@@ -170,6 +170,10 @@ module.exports = restler.service(
                 client.put(url, {data: JSON.stringify(params)}).on("complete", callback);
             }
 
+            function del(url, callback) {
+                client.del(url).on("complete", callback);
+            }
+
             function updateRecord(obj, callback) {
                 //hack for ui_page
                 obj.payload['direct'] = true;
@@ -207,6 +211,7 @@ module.exports = restler.service(
             return {
                 get: get,
                 post: post,
+                del: del,
                 put: put,
                 getRecords: getRecords,
                 updateRecord: updateRecord,

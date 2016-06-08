@@ -74,6 +74,11 @@ module.exports = function (grunt) {
                     res.send(result);
                 });
             });
+            app.delete('/api/*', function (req, res) {
+                snService.del(req.url, function (result) {
+                    res.send(result);
+                });
+            });
 
             /**
              * Api.end
