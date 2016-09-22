@@ -37,7 +37,7 @@ module.exports = function () {
         });
     };
 
-    var readFile = function (file_path) {
+    var readFile = function (file_path,relative_filename) {
         if (!(path.isAbsolute(file_path))) file_path = path.join(current_path, file_path);
         var all_files = [];
         return new Promise(function (resolve, reject) {
@@ -46,8 +46,9 @@ module.exports = function () {
                     return reject()
                 }
 //                num_of_files_loaded++;
+//                name: path.basename(file_path),
                 all_files.push({
-                    name: path.basename(file_path),
+                    name: relative_filename,
                     content: data
                 });
 
@@ -105,8 +106,8 @@ module.exports = function () {
      * @param files_path - This should be a path to a directory
      * @returns {*}
      */
-    this.readFiles = function (folder, filename) {
-        var files_path = path.join(current_path, DESTINATION, folder);
+    this.readFiles = function (folder, filename,config) {
+        var files_path = path.join(current_path, config.app_dir, folder);
 
         if (filename) {
             files_path = path.join(files_path, filename)
@@ -118,9 +119,9 @@ module.exports = function () {
                 }
 
                 if (stats.isDirectory()) {
-                    readDir(files_path).then(resolve, reject);
+                    readDir(files_path,filename).then(resolve, reject);
                 } else {
-                    readFile(files_path).then(resolve, reject);
+                    readFile(files_path,filename).then(resolve, reject);
                 }
             })
         });

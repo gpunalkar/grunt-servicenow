@@ -93,12 +93,21 @@ module.exports = function (grunt) {
                 var pushRecords = function (foldername, filename) {
                     return new Promise(function (resolve, reject) {
                         if (filename) {
-                            if (config.folders[folder_name].extension) {
+                            if (config.folders[foldername].extension) {
                                 filename = filename + "." + config.folders[foldername].extension;
+                            } else {
+                                var file_split = filename.split('/');
+                                var label = file_split[file_split.length-1];
+                                config.folders[foldername].field.forEach(function(field){
+                                    if (field.label == label) {
+                                        filename = filename + "." + field.extension;
+                                    }
+                                })
+
                             }
                         }
 
-                        fileHelper.readFiles(foldername, filename).then(function (all_files) {
+                        fileHelper.readFiles(foldername, filename,config).then(function (all_files) {
                             var filesChanged = [],
                                 filesToSave = {},
                                 newFiles = {},
@@ -114,7 +123,7 @@ module.exports = function (grunt) {
                                             file_obj.content = file_obj.content + deploy;
                                         }
                                     }
-                                    var record_path = path.join(DESTINATION, foldername, file_obj.name);
+                                    var record_path = path.join(config.app_dir, foldername, file_obj.name);
                                     if (record_path in sync_data) {
                                         currentPromise = hash.compareHashRemote(record_path, foldername, config);
                                         currentPromise.then(function (sameHash) {

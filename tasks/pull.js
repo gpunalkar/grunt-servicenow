@@ -81,46 +81,48 @@ module.exports = function (grunt) {
                                             file_path = file_path + "." + item.extension;
                                         }
 
-                                        if ('extension' in config.folders[folder_name]) {
-                                            file_path = file_path + "." + config.folders[folder_name].extension;
-                                        }
-                                        var dest = path.join(DESTINATION, file_path);
+                                        var dest = path.join(config.app_dir, file_path);
 
                                         files_content[dest] = content;
 
                                         hashComparePromise = hash.compareHash(dest);
                                         hashComparePromises.push(hashComparePromise);
+
+
+
+
+
+                                        hashComparePromise.then(function (result) {
+                                            if (result.same_hash) {
+                                                files_to_save[result.dest] = files_content[result.dest];
+                                                sync_data[result.dest] = {
+                                                    sys_id: element.sys_id,
+                                                    sys_updated_on: element.sys_updated_on,
+                                                    sys_updated_by: element.sys_updated_by,
+                                                    hash: hash.hashContent(files_content[result.dest])
+                                                };
+                                            } else {
+                                                files_different[result.dest] = content;
+                                                sync_data_different[result.dest] = {
+                                                    sys_id: element.sys_id,
+                                                    sys_updated_on: element.sys_updated_on,
+                                                    sys_updated_by: element.sys_updated_by,
+                                                    hash: hash.hashContent(content)
+                                                };
+                                            }
+                                        });
+
+
                                     }
 
-                                    var field = config.folders[folder_name].field;
-                                    if (Array.isArray(field)) {
-                                        field.forEach(function (item) {
+                                    var field = config.folders[folder_name];
+                                    if (Array.isArray(field.field)) {
+                                        field.field.forEach(function (item) {
                                             pullRecord(item);
                                         });
                                     } else {
                                         pullRecord(field);
                                     }
-
-
-                                    hashComparePromise.then(function (result) {
-                                        if (result.same_hash) {
-                                            files_to_save[result.dest] = files_content[result.dest];
-                                            sync_data[result.dest] = {
-                                                sys_id: element.sys_id,
-                                                sys_updated_on: element.sys_updated_on,
-                                                sys_updated_by: element.sys_updated_by,
-                                                hash: hash.hashContent(files_content[result.dest])
-                                            };
-                                        } else {
-                                            files_different[result.dest] = content;
-                                            sync_data_different[result.dest] = {
-                                                sys_id: element.sys_id,
-                                                sys_updated_on: element.sys_updated_on,
-                                                sys_updated_by: element.sys_updated_by,
-                                                hash: hash.hashContent(content)
-                                            };
-                                        }
-                                    });
                                 })();
                             });
                             Promise.all(hashComparePromises).then(function () {
