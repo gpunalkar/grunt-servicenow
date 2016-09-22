@@ -64,35 +64,56 @@ module.exports = function (grunt) {
                                 files_different = {},
                                 sync_data_different = {},
                                 hashComparePromises = [],
+                                files_content = {},
                                 hashComparePromise,
                                 filename,
                                 file_path;
                             obj.result.forEach(function (element) {
                                 (function () {
-                                    var content = element[config.folders[folder_name].field];
-                                    filename = element.name;
-                                    file_path = path.join(folder_name, filename);
+                                    function pullRecord(item) {
+                                        var content = element[item.field];
+                                        filename = element[config.folders[folder_name].key];
+                                        file_path = path.join(folder_name, filename);
+                                        if ('label' in item) {
+                                            file_path = path.join(file_path, item.label);
+                                        }
+                                        if ('extension' in item) {
+                                            file_path = file_path + "." + item.extension;
+                                        }
 
-                                    if ('extension' in config.folders[folder_name]) {
-                                        file_path = file_path + "." + config.folders[folder_name].extension;
+                                        if ('extension' in config.folders[folder_name]) {
+                                            file_path = file_path + "." + config.folders[folder_name].extension;
+                                        }
+                                        var dest = path.join(DESTINATION, file_path);
+
+                                        files_content[dest] = content;
+
+                                        hashComparePromise = hash.compareHash(dest);
+                                        hashComparePromises.push(hashComparePromise);
                                     }
-                                    var dest = path.join(DESTINATION, file_path);
 
-                                    hashComparePromise = hash.compareHash(dest);
-                                    hashComparePromises.push(hashComparePromise);
+                                    var field = config.folders[folder_name].field;
+                                    if (Array.isArray(field)) {
+                                        field.forEach(function (item) {
+                                            pullRecord(item);
+                                        });
+                                    } else {
+                                        pullRecord(field);
+                                    }
 
-                                    hashComparePromise.then(function (hash_same) {
-                                        if (hash_same) {
-                                            files_to_save[dest] = content;
-                                            sync_data[dest] = {
+
+                                    hashComparePromise.then(function (result) {
+                                        if (result.same_hash) {
+                                            files_to_save[result.dest] = files_content[result.dest];
+                                            sync_data[result.dest] = {
                                                 sys_id: element.sys_id,
                                                 sys_updated_on: element.sys_updated_on,
                                                 sys_updated_by: element.sys_updated_by,
-                                                hash: hash.hashContent(content)
+                                                hash: hash.hashContent(files_content[result.dest])
                                             };
                                         } else {
-                                            files_different[dest] = content;
-                                            sync_data_different[dest] = {
+                                            files_different[result.dest] = content;
+                                            sync_data_different[result.dest] = {
                                                 sys_id: element.sys_id,
                                                 sys_updated_on: element.sys_updated_on,
                                                 sys_updated_by: element.sys_updated_by,

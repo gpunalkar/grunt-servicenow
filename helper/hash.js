@@ -30,7 +30,7 @@ module.exports = function (sync_data) {
 
                 if (err) {
                     if (err.code == "ENOENT") {
-                        return fulfill(true);
+                        return fulfill({same_hash:true, dest:file_path});
                     }
                     console.log(err);
                 } else {
@@ -47,9 +47,9 @@ module.exports = function (sync_data) {
 
 
                 if (hash_comparison == 0) {
-                    fulfill(true);
+                    fulfill({same_hash:true, dest:file_path});
                 } else {
-                    fulfill(false);
+                    fulfill({same_hash:false, dest:file_path});
                 }
             });
         });
