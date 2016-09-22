@@ -97,8 +97,8 @@ module.exports = function (grunt) {
                                 filename = filename + "." + config.folders[foldername].extension;
                             } else {
                                 var file_split = filename.split('/');
-                                var label = file_split[file_split.length-1];
-                                config.folders[foldername].field.forEach(function(field){
+                                var label = file_split[file_split.length - 1];
+                                config.folders[foldername].field.forEach(function (field) {
                                     if (field.label == label) {
                                         filename = filename + "." + field.extension;
                                     }
@@ -107,7 +107,7 @@ module.exports = function (grunt) {
                             }
                         }
 
-                        fileHelper.readFiles(foldername, filename,config).then(function (all_files) {
+                        fileHelper.readFiles(foldername, filename, config).then(function (all_files) {
                             var filesChanged = [],
                                 filesToSave = {},
                                 newFiles = {},
@@ -173,7 +173,23 @@ module.exports = function (grunt) {
                                     if (global_payload) {
                                         payload = JSON.parse(JSON.stringify(global_payload));
                                     }
-                                    payload[config.folders[foldername].field] = filesToSave[file_path];
+                                    var field = config.folders[foldername].field;
+                                    if (Array.isArray(field)) {
+                                        var split = file_path.split('/');
+                                        split = split[split.length -1].split('.');
+                                        split.pop();
+                                        split = split.join('.');
+
+                                        field.forEach(function(f){
+                                            if (f.label == split) {
+                                                payload[f.field] = filesToSave[file_path];
+                                            }
+                                            // payload[config.folders[foldername].field] = filesToSave[file_path];
+                                        });
+
+                                    } else {
+                                        payload[field] = filesToSave[file_path];
+                                    }
 
                                     fileObj = {
                                         table: config.folders[foldername].table,

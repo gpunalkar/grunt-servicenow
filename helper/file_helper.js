@@ -6,9 +6,9 @@ var path = require('path'),
 
 module.exports = function () {
 
-    var readDir = function (dir_path) {
+    var readDir = function (dir_path, relative_filename) {
         var all_files = [];
-        return new Promise(function (resolve, reject) {
+        return new Promise(function (fresolve, reject) {
             fs.readdir(dir_path, function (err, files) {
                 if (err) {
                     return reject(err)
@@ -17,27 +17,55 @@ module.exports = function () {
 
                 var currentPromise;
                 files.forEach(function (file_name) {
-
                     promisesCreated.push(new Promise(function (resolve, reject) {
-                        fs.readFile(path.join(dir_path, file_name), "utf-8", function (err, data) {
-                            all_files.push({
-                                name: path.basename(file_name),
-                                content: data
-                            });
-                            resolve();
+                        var full_path = path.join(dir_path, file_name);
+
+
+                        fs.lstat(full_path, function (err, stats) {
+                            if (err) {
+                                return reject(err);
+                            }
+
+                            if (stats.isDirectory()) {
+
+
+                                readDir(full_path, true).then(function (all_files) {
+                                    fresolve(all_files)
+                                });
+
+                            } else {
+                                (function () {
+                                    var final_name;
+                                    if (relative_filename) {
+                                        final_name = full_path.split('/').slice(-2).join('/')
+                                    } else {
+                                        final_name = full_path.basename(file_name);
+                                    }
+                                    fs.readFile(full_path, "utf-8", function (err, data) {
+                                        all_files.push({
+                                            name: final_name,
+                                            content: data
+                                        });
+                                        resolve();
+                                    });
+                                })();
+
+                            }
                         });
+
+
                     }));
 
                 });
                 Promise.all(promisesCreated).then(function () {
-                    resolve(all_files);
+                    fresolve(all_files);
                 });
 
             });
         });
     };
 
-    var readFile = function (file_path,relative_filename) {
+    var readFile = function (file_path, relative_filename) {
         if (!(path.isAbsolute(file_path))) file_path = path.join(current_path, file_path);
         var all_files = [];
         return new Promise(function (resolve, reject) {
@@ -77,7 +105,6 @@ module.exports = function () {
     };
 
 
-
     /**
      *
      * @param files_to_create
@@ -106,7 +133,7 @@ module.exports = function () {
      * @param files_path - This should be a path to a directory
      * @returns {*}
      */
-    this.readFiles = function (folder, filename,config) {
+    this.readFiles = function (folder, filename, config) {
         var files_path = path.join(current_path, config.app_dir, folder);
 
         if (filename) {
@@ -119,9 +146,9 @@ module.exports = function () {
                 }
 
                 if (stats.isDirectory()) {
-                    readDir(files_path,filename).then(resolve, reject);
+                    readDir(files_path).then(resolve, reject);
                 } else {
-                    readFile(files_path,filename).then(resolve, reject);
+                    readFile(files_path, filename).then(resolve, reject);
                 }
             })
         });
