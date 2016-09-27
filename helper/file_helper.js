@@ -39,7 +39,7 @@ module.exports = function () {
                                     if (relative_filename) {
                                         final_name = full_path.split('/').slice(-2).join('/')
                                     } else {
-                                        final_name = full_path.basename(file_name);
+                                        final_name = path.basename(path.basename(full_path));
                                     }
                                     fs.readFile(full_path, "utf-8", function (err, data) {
                                         all_files.push({
