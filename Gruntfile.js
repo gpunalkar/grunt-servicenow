@@ -3,8 +3,8 @@ module.exports = function (grunt) {
     grunt.initConfig({
         pkg: grunt.file.readJSON('package.json'), //This allows us to refer to the values of properties within our package.json file. e.g. <%= pkg.name %>
         watch: {
-            ui_scripts: {
-                files: ['dist/ui_scripts/*'],
+            test: {
+                files: ['dist/ui_scripts/*','dist/theme/*','dist/widgets/**/*'],
                 tasks: ['push:<%= folder %>:<%= filechanged %>']
             }
         }

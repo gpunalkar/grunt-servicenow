@@ -8,8 +8,17 @@ module.exports = function (grunt) {
     require('./runserver')(grunt);
 
     grunt.event.on('watch', function (action, filepath) {
-        grunt.config("filechanged", path.basename(filepath).replace(path.extname(filepath),""));
-        grunt.config("folder",path.relative(path.join(process.cwd(),"dist"),path.dirname(filepath)));
+        var file_name = path.basename(filepath).replace(path.extname(filepath),"");
+        var folders = filepath.split(path.sep);
+        folders.shift(); // pop /dist
+        var folder_value = folders.shift(); // pop /folder passed as $folder
+        if (folders.length >= 2 ) {
+            folders.pop(); // pop /filename.ext
+            folders.push(file_name);
+            file_name = folders.join(path.sep);
+        }
+        grunt.config("filechanged", file_name);
+        grunt.config("folder",folder_value);
 
     });
 
