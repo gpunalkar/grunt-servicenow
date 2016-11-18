@@ -1,7 +1,14 @@
 var path = require('path'),
     fs = require('fs-extra'),
     current_path = process.cwd(),
-    DESTINATION = require('../config/constant').DESTINATION;
+    // DESTINATION = require('../config/constant').DESTINATION,
+    require_config = require("./config_validator"),
+    DESTINATION;
+
+
+require_config().then(function (config) {
+    DESTINATION = config.app_dir;
+});
 
 
 module.exports = function () {
@@ -76,7 +83,6 @@ module.exports = function () {
     };
 
 
-
     /**
      *
      * @param files_to_create
@@ -106,6 +112,7 @@ module.exports = function () {
      * @returns {*}
      */
     this.readFiles = function (folder, filename) {
+        console.log(DESTINATION)
         var files_path = path.join(current_path, DESTINATION, folder);
 
         if (filename) {

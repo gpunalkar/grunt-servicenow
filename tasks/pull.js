@@ -9,7 +9,12 @@ var fs = require('fs'),
     HashHelper = require('../helper/hash'),
     util = require('../helper/util'),
     syncDataHelper = require('../helper/sync_data_validator'),
-    DESTINATION = require('../config/constant').DESTINATION;
+    DESTINATION;
+
+require_config().then(function (config) {
+    DESTINATION = config.app_dir;
+});
+
 
 module.exports = function (grunt) {
     grunt.registerTask('pull', 'Pull command.', function (folder_name, file_name) {

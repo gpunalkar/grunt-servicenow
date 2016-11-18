@@ -5,7 +5,7 @@ var inquirer = require("inquirer"),
     path = require('path'),
     fs = require('fs'),
     default_config = require('../config/default_config.json')
-    config_path = path.join(process.cwd(), ".sn-config.json");
+config_path = path.join(process.cwd(), ".sn-config.json");
 
 module.exports = function (grunt) {
     grunt.registerTask('init', 'Setup a new project.', function (folderName, file_name) {
@@ -24,12 +24,12 @@ module.exports = function (grunt) {
                 name: "project_prefix",
                 message: "Enter your project prefix (e.g. ProjectName__). "
             },
-			{
-				type : "input",
-				name: "app_dir",
-				message : "Enter your project's app dir (we'll put your records here).",
-				default : "dist"
-			},
+            {
+                type: "input",
+                name: "app_dir",
+                message: "Enter your project's app dir (we'll put your records here, use $local for current folder).",
+                default: "dist"
+            },
             {
                 type: "input",
                 name: "username",
@@ -47,8 +47,9 @@ module.exports = function (grunt) {
             servicenow_config.auth = hash;
             servicenow_config.host = answers.host + ".service-now.com";
             servicenow_config.project_prefix = answers.project_prefix;
-			servicenow_config.app_dir = answers.app_dir;
-				
+            // servicenow_config.app_dir = answers.app_dir;
+            // a == 10 ? alert("true") : alert("false");
+            servicenow_config.app_dir = answers.app_dir == "$local" ? "" : answers.app_dir;
 
 
             fs.writeFile(config_path, JSON.stringify(servicenow_config), function (err) {
