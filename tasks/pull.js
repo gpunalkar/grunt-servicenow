@@ -53,6 +53,7 @@ module.exports = function (grunt) {
                 };
 
                 var pullRecords = function (folder_name, file_name, exact_filename) {
+
                     return new Promise(function (resolve, reject) {
                         var operator = "STARTSWITH";
                         if (exact_filename) {
@@ -75,7 +76,7 @@ module.exports = function (grunt) {
                             obj.result.forEach(function (element) {
                                 (function () {
                                     var content = element[config.folders[folder_name].field];
-                                    filename = element.name;
+                                    filename = element.name || element[config.folders[folder_name].key];
                                     file_path = path.join(folder_name, filename);
 
                                     if ('extension' in config.folders[folder_name]) {
