@@ -5,6 +5,7 @@
   "project_prefix": "PREFIX__",
   "app_name": "APP_NAME",
   "app_dir": "APP_DIR",
+  "libs": [],
   "map_extension": [
     {
       "from": ".do",
