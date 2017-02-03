@@ -46,6 +46,16 @@ module.exports = function (grunt) {
                             }
                         ];
                         inquirer.prompt(questions, function (answers) {
+                            if (answers.prefix == config.project_prefix) {
+                                if (config.libs) {
+                                    config.libs.push(answers.prefix);
+                                    answers.prefix = config.libs;
+                                } else {
+                                    answers.prefix = [answers.prefix];
+                                }
+                            } else {
+                                answers.prefix = [answers.prefix];
+                            }
                             resolve(answers);
                         });
                     });
@@ -148,7 +158,9 @@ module.exports = function (grunt) {
                     askQuestions().then(function (answers) {
                         var promises = [];
                         answers.folders.forEach(function (folder) {
-                            promises.push(pullRecords(folder, answers.prefix, false));
+                            answers.prefix.forEach(function (searchPrefix) {
+                                promises.push(pullRecords(folder, searchPrefix, false));
+                            });
                         });
 
                         Promise.all(promises).then(function (files_saved) {
