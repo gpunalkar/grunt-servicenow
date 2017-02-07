@@ -122,8 +122,14 @@ module.exports = function (grunt) {
                 } else {
                     if (answers.filename == 'RANDOM')
                         answers.filename = generateName();
-                    console.log('Creating ' + answers.filename)
-                    done();
+
+                    snService.createRecord({
+                        table: 'sys_update_set',
+                        payload: {name: answers.filename}
+                    }, function (err, obj) {
+                        console.log(obj);
+                        done();
+                    });
                 }
             });
         });
