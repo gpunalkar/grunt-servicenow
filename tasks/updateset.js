@@ -32,25 +32,8 @@ module.exports = function (grunt) {
                     message: "What action do you want to run?",
                     choices: [
                         {
-                            name: 'New',
+                            name: 'New and Make Current',
                             value: 'new'
-                        },
-                        {
-                            name: 'List',
-                            value: 'list'
-                        }
-                    ]
-                }
-            ];
-            var question3 = [
-                {
-                    type: "checkbox",
-                    name: "action",
-                    message: "What action do you want to run?",
-                    choices: [
-                        {
-                            name: 'Make Current',
-                            value: 'make_current'
                         },
                         {
                             name: 'Download',
@@ -68,7 +51,8 @@ module.exports = function (grunt) {
 
                 var obj = {
                     table: 'sys_update_set',
-                    limit: 5
+                    limit: 5,
+                    order_by_desc: 'sys_created_on'
                 };
 
                 return new Promise(function (resolve, reject) {
@@ -101,11 +85,11 @@ module.exports = function (grunt) {
             }
 
             askQuestions(question1).then(function (answers) {
-                if (answers.action == 'list') {
+                if (answers.action == 'download') {
                     fetchUpdateset().then(function (choices) {
                         var question2 = [
                             {
-                                type: "checkbox",
+                                type: "list",
                                 name: "updateset",
                                 message: "Please select the updateset",
                                 choices: choices
@@ -114,10 +98,7 @@ module.exports = function (grunt) {
 
                         askQuestions(question2).then(function (answers) {
                             var sys_id = answers.updateset;
-
-                            askQuestions(question3).then(function (answers) {
-                                done();
-                            });
+                            done();
                         })
                     })
 
