@@ -5,6 +5,7 @@ module.exports = function (grunt) {
     require('./init')(grunt);
     require('./pull')(grunt);
     require('./push')(grunt);
+    require('./updateset')(grunt);
     require('./runserver')(grunt);
 
     var require_config = require("../helper/config_validator"),

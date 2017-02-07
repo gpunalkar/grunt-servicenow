@@ -149,7 +149,7 @@ module.exports = restler.service(
                     table: obj.table,
                     parmName: 'query',
                     parmValue: obj.query,
-                    rows: 50,
+                    rows: obj.limit || 50,
                     callback: callback
                 };
 
