@@ -40,7 +40,16 @@ module.exports = function (grunt) {
                             value: 'download'
                         }
                     ]
+                }, {
+                    type: "input",
+                    name: "filename",
+                    message: "Updateset name?",
+                    default: "RANDOM",
+                    when: function (answer) {
+                        return answer.action == 'new'
+                    }
                 }
+
             ];
 
             function fetchUpdateset() {
