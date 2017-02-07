@@ -12,6 +12,7 @@ var fs = require('fs'),
     BottomBar = require('../lib/ui/bottom-bar'),
     DESTINATION;
 
+
 module.exports = function (grunt) {
     grunt.registerTask('updateset', 'Updateset command.', function (folder_name, file_name) {
         var done = this.async();
@@ -51,6 +52,13 @@ module.exports = function (grunt) {
                 }
 
             ];
+
+            function generateName() {
+
+                var today = new Date();
+                return config.project_prefix + " - " + today.toISOString().substring(0, 10);
+
+            }
 
             function fetchUpdateset() {
                 var ui = new BottomBar({bottomBar: loader[i % 4]});
@@ -112,6 +120,9 @@ module.exports = function (grunt) {
                     })
 
                 } else {
+                    if (answers.filename == 'RANDOM')
+                        answers.filename = generateName();
+                    console.log('Creating ' + answers.filename)
                     done();
                 }
             });
