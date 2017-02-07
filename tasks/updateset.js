@@ -33,7 +33,7 @@ module.exports = function (grunt) {
                     message: "What action do you want to run?",
                     choices: [
                         {
-                            name: 'New and Make Current',
+                            name: 'New',
                             value: 'new'
                         },
                         {
@@ -115,6 +115,10 @@ module.exports = function (grunt) {
 
                         askQuestions(question2).then(function (answers) {
                             var sys_id = answers.updateset;
+
+                            var url = config.protocol + '://' + config.host + '/nav_to.do?uri=sys_update_set.do&sys_id=' + sys_id;
+                            console.log('Use the link bellow to download the updateset');
+                            console.log(url);
                             done();
                         })
                     })
@@ -127,7 +131,9 @@ module.exports = function (grunt) {
                         table: 'sys_update_set',
                         payload: {name: answers.filename}
                     }, function (err, obj) {
-                        console.log(obj);
+                        var url = config.protocol + '://' + config.host + '/nav_to.do?uri=sys_update_set.do&sys_id=' + obj.result.sys_id;
+                        console.log('Updateset Created, now mark as current');
+                        console.log(url);
                         done();
                     });
                 }
