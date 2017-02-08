@@ -96,7 +96,7 @@ module.exports = restler.service(
             }
 
             function send(request) {
-                var maxRecords = request.rows || 1;
+                var maxRecords = request.rows || 10;
                 var urlObj;
 
                 if (request.sys_id) {
@@ -110,9 +110,18 @@ module.exports = restler.service(
                     urlObj = {
                         pathname: '/api/now/table/' + request.table,
                         query: {
-                            'sysparm_query': request.parmValue
+                            'sysparm_query': request.parmValue || "",
+                            'sysparm_limit':maxRecords
                         }
                     };
+
+                    if (request.order_by) {
+                        urlObj.query.sysparm_query = urlObj.query.sysparm_query + "^ORDERBY" + request.order_by
+                    }
+
+                    if (request.order_by_desc) {
+                        urlObj.query.sysparm_query = urlObj.query.sysparm_query + "^ORDERBYDESC" + request.order_by_desc
+                    }
 
                 }
 
@@ -149,7 +158,9 @@ module.exports = restler.service(
                     table: obj.table,
                     parmName: 'query',
                     parmValue: obj.query,
-                    rows: 50,
+                    order_by: obj.order_by,
+                    order_by_desc: obj.order_by_desc,
+                    rows: obj.limit,
                     callback: callback
                 };
 
