@@ -56,7 +56,7 @@ module.exports = function (grunt) {
             function generateName() {
 
                 var today = new Date();
-                return config.project_prefix + " - " + today.toISOString().substring(0, 10);
+                return config.project_prefix + " - " + today.toISOString().substring(0, 10) + ' ' + today.getHours() + ':' + today.getMinutes();
 
             }
 
