@@ -115,8 +115,7 @@ module.exports = function (grunt) {
 
                         askQuestions(question2).then(function (answers) {
                             var sys_id = answers.updateset;
-
-                            var url = config.protocol + '://' + config.host + '/nav_to.do?uri=sys_update_set.do&sys_id=' + sys_id;
+                            var url = config.protocol + '://' + config.host + '/nav_to.do?uri=sys_update_set.do?sys_id=' + sys_id;
                             console.log('Use the link bellow to download the updateset');
                             console.log(url);
                             done();
