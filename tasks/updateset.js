@@ -130,7 +130,7 @@ module.exports = function (grunt) {
                         table: 'sys_update_set',
                         payload: {name: answers.filename}
                     }, function (err, obj) {
-                        var url = config.protocol + '://' + config.host + '/nav_to.do?uri=sys_update_set.do&sys_id=' + obj.result.sys_id;
+                        var url = config.protocol + '://' + config.host + '/nav_to.do?uri=sys_update_set.do?sys_id=' + obj.result.sys_id;
                         console.log('Updateset Created, now mark as current');
                         console.log(url);
                         done();
