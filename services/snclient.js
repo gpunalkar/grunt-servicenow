@@ -96,7 +96,7 @@ module.exports = restler.service(
             }
 
             function send(request) {
-                var maxRecords = request.rows || 10;
+                var maxRecords = request.rows;
                 var urlObj;
 
                 if (request.sys_id) {
@@ -110,10 +110,13 @@ module.exports = restler.service(
                     urlObj = {
                         pathname: '/api/now/table/' + request.table,
                         query: {
-                            'sysparm_query': request.parmValue || "",
-                            'sysparm_limit':maxRecords
+                            'sysparm_query': request.parmValue || ""
                         }
                     };
+
+                    if (maxRecords) {
+                        urlObj.query.sysparm_limit = maxRecords;
+                    }
 
                     if (request.order_by) {
                         urlObj.query.sysparm_query = urlObj.query.sysparm_query + "^ORDERBY" + request.order_by
